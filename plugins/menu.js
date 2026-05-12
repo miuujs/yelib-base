@@ -103,22 +103,19 @@ ${time}`
       interactiveMessage: {
         title: 'Select a menu:',
         footer: 'yelib-base',
+        header: 'Options',
         buttons: [
           {
-            name: 'single_select',
-            buttonParamsJson: JSON.stringify({
-              title: 'Options',
-              sections: [
-                {
-                  title: 'Menu',
-                  rows: [
-                    { title: 'Menu', id: 'menu', description: 'Show bot menu' },
-                    { title: 'Info', id: 'info', description: 'Bot information' },
-                    { title: 'Donate', id: 'donate', description: 'Support us' }
-                  ]
-                }
-              ]
-            })
+            name: 'quick_reply',
+            buttonParamsJson: JSON.stringify({ display_text: 'Menu', id: 'menu' })
+          },
+          {
+            name: 'quick_reply',
+            buttonParamsJson: JSON.stringify({ display_text: 'Info', id: 'info' })
+          },
+          {
+            name: 'quick_reply',
+            buttonParamsJson: JSON.stringify({ display_text: 'Donate', id: 'donate' })
           }
         ]
       }
