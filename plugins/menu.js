@@ -100,8 +100,8 @@ ${time}`
           })
         },
         {
-          name: 'quick_reply',
-          buttonParamsJson: JSON.stringify({ display_text: 'Owner', id: 'owner' })
+          name: 'cta_url',
+          buttonParamsJson: JSON.stringify({ display_text: 'Owner', url: 'https://wa.me/' + owner.numbers[0] })
         }
       ]
     }
