@@ -56,19 +56,19 @@ export default async ({ sock, m }) => {
   const cpuModel = cpus.length > 0 ? cpus[0].model : '?'
   const cpuCores = cpus.length
   const disk = getDisk()
-  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
-  const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   const now = new Date()
   const dayName = days[now.getDay()]
   const date = now.getDate()
   const month = months[now.getMonth()]
   const year = now.getFullYear()
-  const time = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
 
-  const text = `*Selamat Datang*
-*Halo ${m.pushName || m.sender.split('@')[0]} | orgnz miuubyte*
+  const text = `*Welcome*
+*Hello ${m.pushName || m.sender.split('@')[0]} | orgnz miuubyte*
 
-*Informasi Bot:*
+*Bot Information:*
 *Runtime* : ${uptime}
 *Node.js* : ${nodeVer}
 *Platform* : ${platform}
@@ -76,12 +76,12 @@ export default async ({ sock, m }) => {
 *CPU* : ${cpuModel} (${cpuCores} core)
 *Disk* : ${disk}
 
-*Waktu:*
-${dayName}, ${date} ${month} ${year}
+*Time:*
+${dayName}, ${month} ${date}, ${year}
 ${time}`
 
   try {
-    const msg = {
+    await sock.sendMessage(m.chat, {
       image: bannerBuffer,
       caption: text,
       contextInfo: {
@@ -97,9 +97,17 @@ ${time}`
           sourceType: '1'
         }
       }
-    }
+    }, { quoted: m })
 
-    await sock.sendMessage(m.chat, msg, { quoted: m })
+    await sock.sendMessage(m.chat, {
+      text: 'Select a menu:',
+      footer: 'yelib-base',
+      interactiveButtons: [
+        { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Menu', id: 'menu' }) },
+        { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Info', id: 'info' }) },
+        { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Donate', id: 'donate' }) }
+      ]
+    })
   } catch (e) {
     await sock.sendMessage(m.chat, { text }, { quoted: m })
   }
