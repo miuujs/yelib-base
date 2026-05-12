@@ -13,6 +13,16 @@ function setCached(jid, data) {
   groupMetaCache.set(jid, { data, ts: Date.now() })
 }
 
+const MEDIA_TYPES = {
+  imageMessage: 'image',
+  videoMessage: 'video',
+  audioMessage: 'audio',
+  documentMessage: 'document',
+  stickerMessage: 'sticker',
+  ptvMessage: 'ptv',
+  productMessage: 'product'
+}
+
 export async function clientsConfig(opts) {
   const clients = bail.makeWASocket({
     ...opts,
@@ -67,6 +77,28 @@ export async function clientsConfig(opts) {
   return clients
 }
 
+function extractText(msg, mtype) {
+  if (!msg) return ''
+  if (mtype === 'conversation') return msg.conversation || ''
+  if (msg.text) return msg.text
+  if (msg.caption) return msg.caption
+  if (msg.contentText) return msg.contentText
+  if (msg.hydratedContentText) return msg.hydratedContentText
+  if (msg.selectedDisplayText) return msg.selectedDisplayText
+  if (msg.title) return msg.title
+  if (msg.description) return msg.description
+  if (msg.name) return msg.name
+  return ''
+}
+
+function getMediaType(mtype) {
+  return MEDIA_TYPES[mtype] || (mtype ? mtype.replace('Message', '').toLowerCase() : '')
+}
+
+function isDownloadable(mtype) {
+  return !!MEDIA_TYPES[mtype] || mtype === 'videoMessage'
+}
+
 export async function smsg(clients, m) {
   if (!m) return m
   const M = bail.proto.WebMessageInfo
@@ -87,36 +119,43 @@ export async function smsg(clients, m) {
       m.key.participantAlt || m.key.participantPn || m.key.participant || m.chat
     ))
     m.pushName = m.pushName || m.verifiedName || ''
+
+    if (m.isGroup) {
+      const cht = clients.chats[m.key.remoteJid] || {}
+      const participant = (cht?.participants || []).find(p => {
+        const pid = p.id || p.lid || ''
+        return pid.includes(m.sender?.split('@')[0]) || pid === m.sender
+      })
+      m.isAdmin = !!(participant?.admin)
+      m.isSuperAdmin = participant?.admin === 'superadmin'
+    } else {
+      m.isAdmin = false
+      m.isSuperAdmin = false
+    }
   }
 
   if (m.message) {
+    const normalized = bail.normalizeMessageContent(m.message)
     const cht = clients.chats[m.key.remoteJid] || {}
     const parti = (cht?.participants || []).reduce((acc, p) => { acc[p.id] = p.phoneNumber; return acc }, {})
 
-    m.mtype = bail.getContentType(m.message)
-    m.msg = m.mtype === 'viewOnceMessage'
-      ? m.message[m.mtype].message[bail.getContentType(m.message[m.mtype].message)]
-      : m.message[m.mtype]
-
-    m.body = m.message.conversation || m.msg?.text || m.msg?.caption || ''
-
+    m.mtype = bail.getContentType(normalized)
+    m.msg = normalized?.[m.mtype] || null
+    m.mediaType = m.mtype ? getMediaType(m.mtype) : ''
+    m.isMedia = !!m.mediaType && isDownloadable(m.mtype)
+    m.body = extractText(m.message, bail.getContentType(m.message)) || extractText(normalized, m.mtype) || ''
     m.mentionedJid = m.isGroup
       ? (m.msg?.contextInfo?.mentionedJid || []).map(id => parti[id] || id).filter(Boolean)
       : []
 
-    const quoted = m.quoted = m.msg?.contextInfo?.quotedMessage || null
+    const quotedMsg = m.msg?.contextInfo?.quotedMessage || null
+    if (quotedMsg) {
+      const qNorm = bail.normalizeMessageContent(quotedMsg)
+      const qType = bail.getContentType(qNorm)
+      const qData = qNorm?.[qType] || null
 
-    if (m.quoted) {
-      let type = bail.getContentType(quoted)
-      m.quoted = m.quoted[type]
-      if (['productMessage'].includes(type)) {
-        type = bail.getContentType(m.quoted)
-        m.quoted = m.quoted[type]
-      }
-      if (typeof m.quoted === 'string') m.quoted = { text: m.quoted }
-
-      if (m && m.quoted) {
-        m.quoted.key = {
+      m.quoted = {
+        key: {
           remoteJid: m.msg?.contextInfo?.remoteJid || m.from,
           participant: bail.jidNormalizedUser(m.msg?.contextInfo?.participant),
           fromMe: bail.areJidsSameUser(
@@ -124,28 +163,28 @@ export async function smsg(clients, m) {
             bail.jidNormalizedUser(clients?.user?.id)
           ),
           id: m.msg?.contextInfo?.stanzaId
-        }
-        m.quoted.mtype = type
-        if (m.quoted.key) {
-          m.quoted.from = /g\.us|status/.test(m.msg?.contextInfo?.remoteJid)
-            ? m.quoted.key.participant
-            : m.quoted.key.remoteJid
-          m.quoted.id = m.msg?.contextInfo?.stanzaId
-          m.quoted.chat = m.msg?.contextInfo?.remoteJid || m.chat
-          if (m.quoted.id) m.quoted.isBaileys = m.quoted.id.startsWith('3EB0')
-          m.quoted.sender = clients.decodeJid(m.msg?.contextInfo?.participant)
-          m.quoted.fromMe = m.quoted.sender === clients.user?.id
-          m.quoted.text = m.quoted.text || m.quoted.caption || m.quoted.conversation
-            || m.quoted.contentText || m.quoted.selectedDisplayText || m.quoted.title || ''
-          m.quoted.mentionedJid = m.msg?.contextInfo?.mentionedJid || []
-          m.quoted.fakeObj = M.fromObject({
-            key: { remoteJid: m.quoted.chat, fromMe: m.quoted.fromMe, id: m.quoted.id },
-            message: quoted,
-            ...(m.isGroup ? { participant: m.quoted.sender } : {})
-          })
-          m.quoted.download = () => downloadMediaMessage(m.quoted)
-        }
+        },
+        mtype: qType,
+        msg: qData,
+        mediaType: getMediaType(qType),
+        isMedia: !!MEDIA_TYPES[qType],
+        text: extractText(qNorm, qType),
+        sender: clients.decodeJid(m.msg?.contextInfo?.participant),
+        fromMe: clients.decodeJid(m.msg?.contextInfo?.participant) === clients.user?.id,
+        from: /g\.us|status/.test(m.msg?.contextInfo?.remoteJid)
+          ? bail.jidNormalizedUser(m.msg?.contextInfo?.participant)
+          : (m.msg?.contextInfo?.remoteJid || m.from),
+        chat: m.msg?.contextInfo?.remoteJid || m.chat,
+        id: m.msg?.contextInfo?.stanzaId,
+        mentionedJid: m.msg?.contextInfo?.mentionedJid || [],
+        isBaileys: m.msg?.contextInfo?.stanzaId?.startsWith('3EB0'),
+        download: () => downloadMediaMessage(qNorm)
       }
+      m.quoted.fakeObj = M.fromObject({
+        key: { remoteJid: m.quoted.chat, fromMe: m.quoted.fromMe, id: m.quoted.id },
+        message: quotedMsg,
+        ...(m.isGroup ? { participant: m.quoted.sender } : {})
+      })
     }
   }
 
@@ -161,11 +200,22 @@ export async function smsg(clients, m) {
 }
 
 export async function downloadMediaMessage(message) {
-  const mime = (message.msg || message).mimetype || ''
-  const messageType = message.mtype
-    ? message.mtype.replace(/Message/gi, '')
-    : mime.split('/')[0]
-  const stream = await bail.downloadContentFromMessage(message, messageType)
+  const norm = bail.normalizeMessageContent(message?.message || message)
+  const mtype = bail.getContentType(norm)
+  const data = mtype ? norm?.[mtype] : norm
+  if (!data?.directPath) return null
+
+  let mediaType = MEDIA_TYPES[mtype]
+  if (!mediaType) {
+    if (data?.gifPlayback) mediaType = 'gif'
+    else if (data?.ptt) mediaType = 'ptt'
+    else if (mtype === 'audioMessage') mediaType = 'audio'
+    else if (mtype === 'videoMessage') mediaType = 'video'
+    else mediaType = mtype?.replace('Message', '').toLowerCase() || 'image'
+  }
+  if (data?.thumbnailDirectPath && !data?.url) mediaType = 'thumbnail-link'
+
+  const stream = await bail.downloadContentFromMessage(data, mediaType)
   const buffer = Buffer.from([])
   for await (const chunk of stream) {
     buffer = Buffer.concat([buffer, chunk])

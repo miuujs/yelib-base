@@ -1,9 +1,36 @@
 import './src/config.js'
 import pino from 'pino'
 import * as bail from 'baileys'
+import { readdirSync, existsSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
 import logger from './src/utils/logger.js'
 import { clientsConfig, smsg } from './src/utils/handler.js'
-import caseHandler from './src/case.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const pluginsDir = join(__dirname, 'plugins')
+let commandMap = {}
+
+async function loadPlugins() {
+  if (!existsSync(pluginsDir)) return
+  const files = readdirSync(pluginsDir).filter(f => f.endsWith('.js'))
+  commandMap = {}
+  for (const file of files) {
+    try {
+      const plugin = await import(join(pluginsDir, file) + '?t=' + Date.now())
+      if (!plugin.commands) continue
+      for (const [cmd, def] of Object.entries(plugin.commands)) {
+        commandMap[cmd] = def
+      }
+    } catch (e) {
+      logger.error('Failed to load ' + file)
+    }
+  }
+  logger.info('Plugins: ' + files.length)
+}
+
+await loadPlugins()
 
 async function start() {
   const { state, saveCreds } = await bail.useMultiFileAuthState(pair.sesi)
@@ -34,7 +61,7 @@ async function start() {
       if (!mek.message) return
       global.m = await smsg(clients, mek)
       if (set.self && ![m.owner, clients.decodeJid(clients.user.id)].includes(m.sender)) return
-      await caseHandler(clients, m)
+      await routeCommand(clients, m)
       logger.print(m)
     } catch (err) {
       console.error(err)
@@ -43,7 +70,6 @@ async function start() {
 
   clients.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect } = update
-
     if (connection === 'close') {
       const reason = lastDisconnect?.error?.output?.statusCode
       logger.warn('Connection closed:', reason)
@@ -67,10 +93,44 @@ async function start() {
   setInterval(() => {
     const mem = process.memoryUsage().rss / 1024 / 1024
     if (mem > 250) {
-      logger.warn(`Memory usage ${mem.toFixed(0)}MB, restarting...`)
+      logger.warn('Memory ' + mem.toFixed(0) + 'MB, restarting...')
       process.exit(1)
     }
   }, 60000)
+}
+
+async function routeCommand(clients, m) {
+  try {
+    const body = m.body || ''
+    if (!body) return
+    const prefixes = set.prefix || ['.']
+    const matchedPrefix = prefixes.find(p => body.startsWith(p))
+    let cmd = ''
+    let args = ''
+    if (matchedPrefix) {
+      const sliced = body.slice(matchedPrefix.length).trim()
+      const parts = sliced.split(/ +/)
+      cmd = parts[0]?.toLowerCase() || ''
+      args = parts.slice(1).join(' ')
+    } else if (set.noprefix) {
+      const parts = body.trim().split(/ +/)
+      const first = parts[0]?.toLowerCase() || ''
+      if (commandMap[first]) {
+        cmd = first
+        args = parts.slice(1).join(' ')
+      }
+    }
+    if (!cmd) return
+    const def = commandMap[cmd]
+    if (!def) return
+    const sender = m.sender?.split('@')[0] || ''
+    const isOwner = owner.numbers.includes(sender)
+    if (def.owner && !isOwner) return m.reply('Owner only')
+    if (def.group && !m.isGroup) return m.reply('Group only')
+    await def.handler({ clients, m, cmd, args, prefix: matchedPrefix || '', body })
+  } catch (e) {
+    logger.error('Route error: ' + e.message)
+  }
 }
 
 start()
