@@ -4,6 +4,7 @@ import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import os from 'os'
 import { formatBytes } from '../src/utils/tools.js'
+import { generateWAMessageFromContent } from 'baileys'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -62,8 +63,8 @@ export default async ({ sock, m }) => {
   const year = now.getFullYear()
   const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
 
-  const text = `*Welcome*
-*Hello*
+  const text = `*Welcome To Main Menu*
+@${m.sender.split('@')[0]}
 
 *Bot Information:*
 *Runtime* : ${uptime}
@@ -77,10 +78,10 @@ export default async ({ sock, m }) => {
 ${dayName}, ${month} ${date}, ${year}
 ${time}`
 
-  await sock.sendMessage(m.chat, {
+  const processed = await sock.messageBuilders.handleInteractive({
     interactiveMessage: {
       title: text,
-      footer: 'Powered by yelib',
+      footer: 'github:miuujs/baileys',
       contextInfo: { mentionedJid: [m.sender] },
       image: bannerBuffer,
       buttons: [
@@ -106,5 +107,17 @@ ${time}`
         }
       ]
     }
+  }, m.chat, m)
+
+  if (processed.interactiveMessage.contextInfo) {
+    delete processed.interactiveMessage.contextInfo.forwardingScore
+    delete processed.interactiveMessage.contextInfo.isForwarded
+  }
+
+  const msg = generateWAMessageFromContent(m.chat, processed, {
+    quoted: m,
+    userJid: sock.user.id
   })
+
+  await sock.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
 }

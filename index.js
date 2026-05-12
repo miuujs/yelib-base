@@ -19,8 +19,9 @@ async function loadPlugins() {
   for (const file of files) {
     try {
       const plugin = await import(join(pluginsDir, file) + '?t=' + Date.now())
-      const cmd = file.replace('.js', '')
+      let cmd = file.replace('.js', '')
       commandMap[cmd] = plugin.default || plugin
+      if (cmd.startsWith('group-')) commandMap[cmd.replace('group-', '')] = commandMap[cmd]
     } catch (e) {
       logger.error('Failed to load ' + file)
     }
@@ -69,18 +70,19 @@ async function start() {
   }
 
   sock.ev.on('messages.upsert', async (chatUpdate) => {
+    if (chatUpdate.type !== 'notify') return
     try {
-      const mek = chatUpdate.messages[0]
-      if (!mek.message) return
-      global.m = await smsg(sock, mek)
-      if (set.self && ![m.owner, sock.decodeJid(sock.user.id)].includes(m.sender)) return
-      await routeCommand(sock, m)
-      logger.print(m)
+      for (const msg of chatUpdate.messages) {
+        if (!msg.message) continue
+        global.m = await smsg(sock, msg)
+        if (set.self && ![m.owner, sock.decodeJid(sock.user.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) continue
+        await routeCommand(sock, m)
+        logger.print(m)
+      }
     } catch (err) {
       console.error(err)
     }
   })
-
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect } = update
     if (connection === 'close') {
@@ -124,25 +126,24 @@ async function routeCommand(sock, m) {
     const prefixes = set.prefix || ['.']
     const matchedPrefix = prefixes.find(p => body.startsWith(p))
     let cmd = ''
-    let args = ''
+    let args = []
     if (matchedPrefix) {
       const sliced = body.slice(matchedPrefix.length).trim()
       const parts = sliced.split(/ +/)
       cmd = parts[0]?.toLowerCase() || ''
-      args = parts.slice(1).join(' ')
+      args = parts.slice(1)
     } else if (set.noprefix) {
       const parts = body.trim().split(/ +/)
       const first = parts[0]?.toLowerCase() || ''
       if (commandMap[first]) {
         cmd = first
-        args = parts.slice(1).join(' ')
+        args = parts.slice(1)
       }
     }
     if (!cmd) return
     const handler = commandMap[cmd]
     if (!handler) return
-    const sender = m.sender?.split('@')[0] || ''
-    const isOwner = owner.numbers.includes(sender)
+    const isOwner = owner.numbers.some(n => bail.areJidsSameUser(n + '@s.whatsapp.net', m.sender))
     const isGroup = m.isGroup
     await handler({ sock, m, cmd, args, prefix: matchedPrefix || '', body, isOwner, isGroup })
   } catch (e) {

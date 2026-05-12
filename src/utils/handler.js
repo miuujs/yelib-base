@@ -115,9 +115,11 @@ export async function smsg(sock, m) {
     m.owner = sock.getJid(bail.jidNormalizedUser(global.owner.numbers[0] + '@s.whatsapp.net'))
     m.fromMe = m.key.fromMe
     m.isGroup = m.chat?.endsWith('@g.us')
-    m.sender = sock.getJid(bail.jidNormalizedUser(
-      m.key.participantAlt || m.key.participantPn || m.key.participant || m.chat
-    ))
+    m.sender = m.fromMe
+      ? sock.decodeJid(sock.user.id)
+      : sock.getJid(bail.jidNormalizedUser(
+          m.key.participantAlt || m.key.participantPn || m.key.participant || m.chat
+        ))
     m.pushName = m.pushName || m.verifiedName || ''
 
     if (m.isGroup) {
@@ -143,7 +145,7 @@ export async function smsg(sock, m) {
     m.msg = normalized?.[m.mtype] || null
     m.mediaType = m.mtype ? getMediaType(m.mtype) : ''
     m.isMedia = !!m.mediaType && isDownloadable(m.mtype)
-    m.body = extractText(m.message, bail.getContentType(m.message)) || extractText(normalized, m.mtype) || ''
+    m.body = extractText(m.message, bail.getContentType(m.message)) || extractText(normalized, m.mtype) || m.msg?.text || ''
     m.mentionedJid = m.isGroup
       ? (m.msg?.contextInfo?.mentionedJid || []).map(id => parti[id] || id).filter(Boolean)
       : []
@@ -216,7 +218,7 @@ export async function downloadMediaMessage(message) {
   if (data?.thumbnailDirectPath && !data?.url) mediaType = 'thumbnail-link'
 
   const stream = await bail.downloadContentFromMessage(data, mediaType)
-  const buffer = Buffer.from([])
+  let buffer = Buffer.from([])
   for await (const chunk of stream) {
     buffer = Buffer.concat([buffer, chunk])
   }
