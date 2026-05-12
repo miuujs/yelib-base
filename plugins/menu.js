@@ -80,36 +80,33 @@ export default async ({ sock, m }) => {
 ${dayName}, ${month} ${date}, ${year}
 ${time}`
 
-  try {
-    await sock.sendMessage(m.chat, {
-      image: bannerBuffer,
-      caption: text,
-      contextInfo: {
-        mentionedJid: [m.sender],
-        isForwarded: true,
-        forwardingScore: 999,
-        externalAdReply: {
-          title: 'yelib-base',
-          body: '',
-          thumbnail: menuBuffer,
-          mediaType: 1,
-          sourceUrl: 'https://github.com/miuujs/yelib-base',
-          sourceType: '1'
-        }
+  await sock.sendMessage(m.chat, {
+    image: bannerBuffer,
+    caption: text,
+    contextInfo: {
+      mentionedJid: [m.sender],
+      isForwarded: true,
+      forwardingScore: 999,
+      externalAdReply: {
+        title: 'yelib-base',
+        body: '',
+        thumbnail: menuBuffer,
+        mediaType: 1,
+        sourceUrl: 'https://github.com/miuujs/yelib-base',
+        sourceType: '1'
       }
-    }, { quoted: m })
+    }
+  }, { quoted: m })
 
-    await sock.sendMessage(m.chat, {
-      text: 'Select a menu:',
+  await sock.sendMessage(m.chat, {
+    interactiveMessage: {
+      title: 'Select a menu:',
       footer: 'yelib-base',
-      interactiveButtons: [
-        { name: 'quick_reply', buttonParamsJson: { display_text: 'Menu', id: 'menu' } },
-        { name: 'quick_reply', buttonParamsJson: { display_text: 'Info', id: 'info' } },
-        { name: 'quick_reply', buttonParamsJson: { display_text: 'Donate', id: 'donate' } }
+      buttons: [
+        { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Menu', id: 'menu' }) },
+        { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Info', id: 'info' }) },
+        { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Donate', id: 'donate' }) }
       ]
-    })
-  } catch (e) {
-    console.error('Menu error:', e)
-    await sock.sendMessage(m.chat, { text }, { quoted: m })
-  }
+    }
+  })
 }
