@@ -16,7 +16,8 @@ try {
 export async function adReply(sock, m, text, options = {}) {
   const { contextInfo, ...msgOpts } = options
   const message = {
-    text,
+    image: menuBuffer,
+    caption: text,
     contextInfo: {
       mentionedJid: [m.sender, m?.quoted?.sender || ''].filter(Boolean),
       forwardingScore: 999,
@@ -26,16 +27,7 @@ export async function adReply(sock, m, text, options = {}) {
     ...msgOpts
   }
 
-  if (menuBuffer) {
-    message.contextInfo.externalAdReply = {
-      title: 'yelib-base',
-      body: '',
-      thumbnail: menuBuffer,
-      mediaType: 1,
-      sourceUrl: 'https://github.com/miuujs/yelib-base',
-      sourceType: 1
-    }
-  }
+  if (!message.image) delete message.image
 
   return sock.sendMessage(m.chat, message, { quoted: m })
 }
