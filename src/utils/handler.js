@@ -147,7 +147,7 @@ export async function smsg(sock, m) {
     m.msg = normalized?.[m.mtype] || null
     m.mediaType = m.mtype ? getMediaType(m.mtype) : ''
     m.isMedia = !!m.mediaType && isDownloadable(m.mtype)
-    m.body = extractText(m.message, bail.getContentType(m.message)) || extractText(normalized, m.mtype) || m.msg?.text || ''
+    m.body = extractText(m.message, bail.getContentType(m.message)) || extractText(normalized, m.mtype) || m.msg?.text || m.msg?.selectedButtonId || m.msg?.singleSelectReply?.selectedRowId || ''
     m.mentionedJid = m.isGroup
       ? (m.msg?.contextInfo?.mentionedJid || []).map(id => parti[id] || id).filter(Boolean)
       : []
