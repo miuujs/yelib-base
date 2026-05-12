@@ -19,7 +19,7 @@ global.owner = {
 }
 
 global.set = {
-  prefix: parseList(process.env.PREFIX || '.,/, #'),
+  prefix: parseList(process.env.PREFIX || '.,!,/,#,$,-,+,;,~,&,%'),
   self: process.env.MODE !== 'public'
 }
 
