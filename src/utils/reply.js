@@ -29,7 +29,7 @@ export async function adReply(sock, m, text) {
         thumbnail: menuBuffer,
         mediaType: 1,
         sourceUrl: 'https://github.com/miuujs/yelib-base',
-        sourceType: 1
+        sourceType: '1'
       }
     }
 
