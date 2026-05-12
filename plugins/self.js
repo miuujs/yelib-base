@@ -6,17 +6,17 @@ export const commands = {
   self: {
     owner: true,
     group: false,
-    handler: async ({ clients, m }) => {
+    handler: async ({ sock, m }) => {
       set.self = true
-      await adReply(clients, m, 'Self mode activated')
+      await adReply(sock, m, 'Self mode activated')
     }
   },
   public: {
     owner: true,
     group: false,
-    handler: async ({ clients, m }) => {
+    handler: async ({ sock, m }) => {
       set.self = false
-      await adReply(clients, m, 'Public mode activated')
+      await adReply(sock, m, 'Public mode activated')
     }
   }
 }

@@ -13,7 +13,7 @@ try {
   }
 } catch {}
 
-export async function adReply(clients, m, text, options = {}) {
+export async function adReply(sock, m, text, options = {}) {
   const { contextInfo, ...msgOpts } = options
   const message = {
     text,
@@ -36,5 +36,5 @@ export async function adReply(clients, m, text, options = {}) {
     ...msgOpts
   }
 
-  return clients.sendMessage(m.chat, message, { quoted: m })
+  return sock.sendMessage(m.chat, message, { quoted: m })
 }

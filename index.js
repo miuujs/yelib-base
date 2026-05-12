@@ -5,7 +5,7 @@ import { readdirSync, existsSync, rmSync, readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import logger from './src/utils/logger.js'
-import { clientsConfig, smsg } from './src/utils/handler.js'
+import { sockConfig, smsg } from './src/utils/handler.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -50,7 +50,7 @@ async function start() {
 
   const { state, saveCreds } = await bail.useMultiFileAuthState(pair.sesi)
 
-  global.clients = await clientsConfig({
+  global.sock = await sockConfig({
     logger: pino({ level: 'silent' }),
     printQRInTerminal: !pair.isPair,
     browser: ['Windows', 'Chrome', ''],
@@ -62,28 +62,28 @@ async function start() {
     shouldIgnoreJid: (jid) => jid.endsWith('@newsletter') || jid.includes('broadcast')
   })
 
-  if (pair.isPair && !clients.authState.creds.registered) {
+  if (pair.isPair && !sock.authState.creds.registered) {
     const phone = pair.no.replace(/[^0-9]/g, '')
     await bail.delay(3000)
-    let code = await clients.requestPairingCode(phone, 'AAAAAAAA')
+    let code = await sock.requestPairingCode(phone, 'AAAAAAAA')
     code = code?.match(/.{1,4}/g)?.join('-') || code
     logger.info('Pairing code:', code)
   }
 
-  clients.ev.on('messages.upsert', async (chatUpdate) => {
+  sock.ev.on('messages.upsert', async (chatUpdate) => {
     try {
       const mek = chatUpdate.messages[0]
       if (!mek.message) return
-      global.m = await smsg(clients, mek)
-      if (set.self && ![m.owner, clients.decodeJid(clients.user.id)].includes(m.sender)) return
-      await routeCommand(clients, m)
+      global.m = await smsg(sock, mek)
+      if (set.self && ![m.owner, sock.decodeJid(sock.user.id)].includes(m.sender)) return
+      await routeCommand(sock, m)
       logger.print(m)
     } catch (err) {
       console.error(err)
     }
   })
 
-  clients.ev.on('connection.update', async (update) => {
+  sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect } = update
     if (connection === 'close') {
       const reason = lastDisconnect?.error?.output?.statusCode
@@ -101,14 +101,14 @@ async function start() {
       }
     } else if (connection === 'open') {
       logger.info('Connected to WhatsApp')
-      const groups = (await clients.groupFetchAllParticipating().catch(() => ({}))) || {}
-      for (const id in groups) clients.chats[id] = groups[id]
+      const groups = (await sock.groupFetchAllParticipating().catch(() => ({}))) || {}
+      for (const id in groups) sock.chats[id] = groups[id]
     } else if (connection === 'connecting') {
       logger.info('Connecting...')
     }
   })
 
-  clients.ev.on('creds.update', saveCreds)
+  sock.ev.on('creds.update', saveCreds)
 
   setInterval(() => {
     const mem = process.memoryUsage().rss / 1024 / 1024
@@ -119,7 +119,7 @@ async function start() {
   }, 60000)
 }
 
-async function routeCommand(clients, m) {
+async function routeCommand(sock, m) {
   try {
     const body = m.body || ''
     if (!body) return
@@ -147,7 +147,7 @@ async function routeCommand(clients, m) {
     const isOwner = owner.numbers.includes(sender)
     if (def.owner && !isOwner) return m.reply('Owner only')
     if (def.group && !m.isGroup) return m.reply('Group only')
-    await def.handler({ clients, m, cmd, args, prefix: matchedPrefix || '', body })
+    await def.handler({ sock, m, cmd, args, prefix: matchedPrefix || '', body })
   } catch (e) {
     logger.error('Route error: ' + e.message)
   }

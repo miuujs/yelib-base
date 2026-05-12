@@ -23,15 +23,15 @@ const MEDIA_TYPES = {
   productMessage: 'product'
 }
 
-export async function clientsConfig(opts) {
-  const clients = bail.makeWASocket({
+export async function sockConfig(opts) {
+  const sock = bail.makeWASocket({
     ...opts,
     cachedGroupMetadata: getCached
   })
 
-  clients.chats = {}
+  sock.chats = {}
 
-  clients.decodeJid = (jid) => {
+  sock.decodeJid = (jid) => {
     if (!jid) return jid
     if (/:\d+@/gi.test(jid)) {
       const decode = bail.jidDecode(jid) || {}
@@ -40,10 +40,10 @@ export async function clientsConfig(opts) {
     return jid
   }
 
-  clients.getJid = (jid) => {
+  sock.getJid = (jid) => {
     if (!jid) return jid
     if (!jid.endsWith('@lid')) return jid
-    for (const chat of Object.values(clients.chats)) {
+    for (const chat of Object.values(sock.chats)) {
       if (!chat?.participants) continue
       const user = chat.participants.find(p => p.lid === jid || p.id === jid)
       if (user) return user.phoneNumber || user.id
@@ -51,30 +51,30 @@ export async function clientsConfig(opts) {
     return jid
   }
 
-  clients.ev.on('group-participants.update', async ({ id }) => {
+  sock.ev.on('group-participants.update', async ({ id }) => {
     if (!id || id === 'status@broadcast') return
     try {
-      const data = await clients.groupMetadata(id)
+      const data = await sock.groupMetadata(id)
       setCached(id, data)
-      clients.chats[id] = data
+      sock.chats[id] = data
       await new Promise(r => setTimeout(r, 500))
     } catch {}
   })
 
-  clients.ev.on('groups.update', async (updates) => {
+  sock.ev.on('groups.update', async (updates) => {
     for (const u of updates) {
       if (!u.id || u.id === 'status@broadcast' || !u.id.endsWith('@g.us')) continue
       try {
-        const data = await clients.groupMetadata(u.id)
+        const data = await sock.groupMetadata(u.id)
         setCached(u.id, data)
-        clients.chats[u.id] = data
+        sock.chats[u.id] = data
         await new Promise(r => setTimeout(r, 500))
       } catch {}
     }
   })
 
-  Object.defineProperty(clients, 'name', { value: 'WASocket', configurable: true })
-  return clients
+  Object.defineProperty(sock, 'name', { value: 'WASocket', configurable: true })
+  return sock
 }
 
 function extractText(msg, mtype) {
@@ -99,7 +99,7 @@ function isDownloadable(mtype) {
   return !!MEDIA_TYPES[mtype]
 }
 
-export async function smsg(clients, m) {
+export async function smsg(sock, m) {
   if (!m) return m
   const M = bail.proto.WebMessageInfo
 
@@ -109,19 +109,19 @@ export async function smsg(clients, m) {
       ? bail.jidNormalizedUser(m.key?.participant || m.participant)
       : bail.jidNormalizedUser(m.key.remoteJid)
     m.isBaileys = m.id?.startsWith('3EB0')
-    m.chat = clients?.getJid(m.key?.remoteJidAlt?.endsWith('@s.whatsapp.net')
+    m.chat = sock?.getJid(m.key?.remoteJidAlt?.endsWith('@s.whatsapp.net')
       ? m.key.remoteJidAlt
       : m.key?.remoteJid)
-    m.owner = clients.getJid(bail.jidNormalizedUser(global.owner.numbers[0] + '@s.whatsapp.net'))
+    m.owner = sock.getJid(bail.jidNormalizedUser(global.owner.numbers[0] + '@s.whatsapp.net'))
     m.fromMe = m.key.fromMe
     m.isGroup = m.chat?.endsWith('@g.us')
-    m.sender = clients.getJid(bail.jidNormalizedUser(
+    m.sender = sock.getJid(bail.jidNormalizedUser(
       m.key.participantAlt || m.key.participantPn || m.key.participant || m.chat
     ))
     m.pushName = m.pushName || m.verifiedName || ''
 
     if (m.isGroup) {
-      const cht = clients.chats[m.key.remoteJid] || {}
+      const cht = sock.chats[m.key.remoteJid] || {}
       const participant = (cht?.participants || []).find(p => {
         const pid = p.id || p.lid || ''
         return pid.includes(m.sender?.split('@')[0]) || pid === m.sender
@@ -136,7 +136,7 @@ export async function smsg(clients, m) {
 
   if (m.message) {
     const normalized = bail.normalizeMessageContent(m.message)
-    const cht = clients.chats[m.key.remoteJid] || {}
+    const cht = sock.chats[m.key.remoteJid] || {}
     const parti = (cht?.participants || []).reduce((acc, p) => { acc[p.id] = p.phoneNumber; return acc }, {})
 
     m.mtype = bail.getContentType(normalized)
@@ -160,7 +160,7 @@ export async function smsg(clients, m) {
           participant: bail.jidNormalizedUser(m.msg?.contextInfo?.participant),
           fromMe: bail.areJidsSameUser(
             bail.jidNormalizedUser(m.msg?.contextInfo?.participant),
-            bail.jidNormalizedUser(clients?.user?.id)
+            bail.jidNormalizedUser(sock?.user?.id)
           ),
           id: m.msg?.contextInfo?.stanzaId
         },
@@ -169,8 +169,8 @@ export async function smsg(clients, m) {
         mediaType: getMediaType(qType),
         isMedia: !!MEDIA_TYPES[qType],
         text: extractText(qNorm, qType),
-        sender: clients.decodeJid(m.msg?.contextInfo?.participant),
-        fromMe: clients.decodeJid(m.msg?.contextInfo?.participant) === clients.user?.id,
+        sender: sock.decodeJid(m.msg?.contextInfo?.participant),
+        fromMe: sock.decodeJid(m.msg?.contextInfo?.participant) === sock.user?.id,
         from: /g\.us|status/.test(m.msg?.contextInfo?.remoteJid)
           ? bail.jidNormalizedUser(m.msg?.contextInfo?.participant)
           : (m.msg?.contextInfo?.remoteJid || m.from),
@@ -190,11 +190,11 @@ export async function smsg(clients, m) {
 
   m.reply = async (text, options = {}) => {
     const { adReply } = await import('./reply.js')
-    return adReply(clients, m, text, options)
+    return adReply(sock, m, text, options)
   }
 
-  m.copy = () => smsg(clients, M.fromObject(M.toObject(m)))
-  m.react = (emoji, key = m.key) => clients.sendMessage(m.chat, { react: { text: emoji, key } })
+  m.copy = () => smsg(sock, M.fromObject(M.toObject(m)))
+  m.react = (emoji, key = m.key) => sock.sendMessage(m.chat, { react: { text: emoji, key } })
 
   return m
 }
