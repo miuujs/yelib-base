@@ -151,7 +151,7 @@ export async function smsg(sock, m) {
     if (m.msg?.nativeFlowResponseMessage?.paramsJson) {
       try { nativeFlowId = JSON.parse(m.msg.nativeFlowResponseMessage.paramsJson).id } catch {}
     }
-    m.body = extractText(m.message, bail.getContentType(m.message)) || extractText(normalized, m.mtype) || m.msg?.text || m.msg?.selectedButtonId || m.msg?.singleSelectReply?.selectedRowId || m.msg?.body?.text || nativeFlowId || ''
+    m.body = extractText(m.message, bail.getContentType(m.message)) || extractText(normalized, m.mtype) || m.msg?.text || m.msg?.selectedButtonId || m.msg?.singleSelectReply?.selectedRowId || nativeFlowId || m.msg?.body?.text || ''
     m.mentionedJid = m.isGroup
       ? (m.msg?.contextInfo?.mentionedJid || []).map(id => parti[id] || id).filter(Boolean)
       : []
