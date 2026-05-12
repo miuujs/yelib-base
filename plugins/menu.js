@@ -8,13 +8,10 @@ import { runtime, formatBytes } from '../src/utils/tools.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const bannerPath = join(__dirname, '../media/banner.jpeg')
-const menuPath = join(__dirname, '../media/menu.jpg')
 
 let bannerBuffer = null
-let menuBuffer = null
 try {
   if (existsSync(bannerPath)) bannerBuffer = readFileSync(bannerPath)
-  if (existsSync(menuPath)) menuBuffer = readFileSync(menuPath)
 } catch {}
 
 function getDiskInfo() {
@@ -81,31 +78,27 @@ ${dayName}, ${month} ${date}, ${year}
 ${time}`
 
   await sock.sendMessage(m.chat, {
-    image: bannerBuffer,
-    caption: text,
-    contextInfo: {
-      mentionedJid: [m.sender],
-      isForwarded: true,
-      forwardingScore: 999,
-      externalAdReply: {
-        title: 'yelib-base',
-        body: '',
-        thumbnail: menuBuffer,
-        mediaType: 1,
-        sourceUrl: 'https://github.com/miuujs/yelib-base',
-        sourceType: '1'
-      }
-    }
-  }, { quoted: m })
-
-  await sock.sendMessage(m.chat, {
     interactiveMessage: {
-      title: 'Select a menu:',
+      title: text,
       footer: 'yelib-base',
+      image: bannerBuffer,
       buttons: [
-        { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Menu', id: 'menu' }) },
-        { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Info', id: 'info' }) },
-        { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Donate', id: 'donate' }) }
+        {
+          name: 'single_select',
+          buttonParamsJson: JSON.stringify({
+            title: 'Menu Options',
+            sections: [
+              {
+                title: 'Menu',
+                rows: [
+                  { title: 'Menu', id: 'menu', description: 'Show bot menu' },
+                  { title: 'Info', id: 'info', description: 'Bot information' },
+                  { title: 'Donate', id: 'donate', description: 'Support us' }
+                ]
+              }
+            ]
+          })
+        }
       ]
     }
   })
