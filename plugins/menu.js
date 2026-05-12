@@ -81,6 +81,7 @@ ${time}`
     interactiveMessage: {
       title: text,
       footer: 'Powered by yelib',
+      contextInfo: { mentionedJid: [m.sender] },
       image: bannerBuffer,
       buttons: [
         {
