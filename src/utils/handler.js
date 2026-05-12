@@ -96,7 +96,7 @@ function getMediaType(mtype) {
 }
 
 function isDownloadable(mtype) {
-  return !!MEDIA_TYPES[mtype] || mtype === 'videoMessage'
+  return !!MEDIA_TYPES[mtype]
 }
 
 export async function smsg(clients, m) {

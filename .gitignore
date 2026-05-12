@@ -3,4 +3,3 @@ session/
 database.json
 *.log
 .env
-media/
