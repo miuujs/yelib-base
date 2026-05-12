@@ -8,12 +8,13 @@ import { runtime, formatBytes } from '../src/utils/tools.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const bannerPath = join(__dirname, '../media/banner')
+const menuPath = join(__dirname, '../media/menu.jpg')
 
 let bannerBuffer = null
+let menuBuffer = null
 try {
-  if (existsSync(bannerPath)) {
-    bannerBuffer = readFileSync(bannerPath)
-  }
+  if (existsSync(bannerPath)) bannerBuffer = readFileSync(bannerPath)
+  if (existsSync(menuPath)) menuBuffer = readFileSync(menuPath)
 } catch {}
 
 function getDiskInfo() {
@@ -80,7 +81,25 @@ ${dayName}, ${date} ${month} ${year}
 ${time}`
 
   try {
-    await sock.sendMessage(m.chat, { image: bannerBuffer, caption: text }, { quoted: m })
+    const msg = {
+      image: bannerBuffer,
+      caption: text,
+      contextInfo: {
+        mentionedJid: [m.sender],
+        isForwarded: true,
+        forwardingScore: 999,
+        externalAdReply: {
+          title: 'yelib-base',
+          body: '',
+          thumbnail: menuBuffer,
+          mediaType: 1,
+          sourceUrl: 'https://github.com/miuujs/yelib-base',
+          sourceType: '1'
+        }
+      }
+    }
+
+    await sock.sendMessage(m.chat, msg, { quoted: m })
   } catch (e) {
     await sock.sendMessage(m.chat, { text }, { quoted: m })
   }
