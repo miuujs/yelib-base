@@ -84,6 +84,8 @@ function extractText(msg, mtype) {
   if (msg.caption) return msg.caption
   if (msg.contentText) return msg.contentText
   if (msg.hydratedContentText) return msg.hydratedContentText
+  if (msg.selectedButtonId) return msg.selectedButtonId
+  if (msg.singleSelectReply?.selectedRowId) return msg.singleSelectReply.selectedRowId
   if (msg.selectedDisplayText) return msg.selectedDisplayText
   if (msg.title) return msg.title
   if (msg.description) return msg.description
