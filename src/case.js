@@ -53,7 +53,7 @@ export default async (clients, m) => {
       const parts = sliced.split(/ +/)
       cmd = parts[0]?.toLowerCase() || ''
       args = parts.slice(1).join(' ')
-    } else {
+    } else if (set.noprefix) {
       const parts = body.trim().split(/ +/)
       const first = parts[0]?.toLowerCase() || ''
       if (commandMap[first]) {

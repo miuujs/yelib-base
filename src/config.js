@@ -20,7 +20,8 @@ global.owner = {
 
 global.set = {
   prefix: parseList(process.env.PREFIX || '.,!,/,#,$,-,+,;,~,&,%'),
-  self: process.env.MODE !== 'public'
+  self: process.env.MODE !== 'public',
+  noprefix: process.env.NOPREFIX !== 'false'
 }
 
 global.pair = {
@@ -38,4 +39,4 @@ global.bail = bail
 global.chalk = chalk
 global.start = Date.now()
 
-logger.info('Config loaded | Mode: ' + (set.self ? 'Self' : 'Public') + ' | Prefix: ' + set.prefix.join(', '))
+logger.info('Config loaded | Mode: ' + (set.self ? 'Self' : 'Public') + ' | Noprefix: ' + set.noprefix + ' | Prefix: ' + set.prefix.join(', '))
