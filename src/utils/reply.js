@@ -14,20 +14,23 @@ try {
 } catch {}
 
 export async function adReply(sock, m, text, options = {}) {
-  const { contextInfo, ...msgOpts } = options
-  const message = {
-    image: menuBuffer,
-    caption: text,
-    contextInfo: {
-      mentionedJid: [m.sender, m?.quoted?.sender || ''].filter(Boolean),
-      forwardingScore: 999,
-      isForwarded: true,
-      ...contextInfo
-    },
-    ...msgOpts
+  const message = { text }
+
+  message.contextInfo = {
+    mentionedJid: [m.sender, m?.quoted?.sender || ''].filter(Boolean),
+    isForwarded: true,
+    forwardingScore: 999
   }
 
-  if (!message.image) delete message.image
+  if (menuBuffer) {
+    message.contextInfo.externalAdReply = {
+      title: 'yelib-base',
+      body: '',
+      thumbnail: menuBuffer,
+      mediaType: 1,
+      sourceUrl: 'https://github.com/miuujs/yelib-base'
+    }
+  }
 
   return sock.sendMessage(m.chat, message, { quoted: m })
 }
