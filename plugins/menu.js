@@ -7,7 +7,7 @@ import { runtime, formatBytes } from '../src/utils/tools.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const bannerPath = join(__dirname, '../media/banner')
+const bannerPath = join(__dirname, '../media/banner.jpeg')
 const menuPath = join(__dirname, '../media/menu.jpg')
 
 let bannerBuffer = null
