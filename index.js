@@ -1,7 +1,7 @@
 import './src/config.js'
 import pino from 'pino'
 import * as bail from 'baileys'
-import { readdirSync, existsSync } from 'fs'
+import { readdirSync, existsSync, rmSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import logger from './src/utils/logger.js'
@@ -77,7 +77,12 @@ async function start() {
         logger.info('Restarting in 5 seconds...')
         setTimeout(start, 5000)
       } else {
-        logger.error('Logged out. Please delete session and restart.')
+        const sesiPath = join(__dirname, pair.sesi)
+        if (existsSync(sesiPath)) {
+          rmSync(sesiPath, { recursive: true, force: true })
+          logger.info('Session deleted: ' + pair.sesi)
+        }
+        logger.error('Logged out')
       }
     } else if (connection === 'open') {
       logger.info('Connected to WhatsApp')
