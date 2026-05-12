@@ -3,21 +3,21 @@
 </p>
 
 <p align="center">
-  <strong>WhatsApp Bot</strong> &mdash; v1.0.0 &mdash; built on Baileys v7
+  <strong>yelib-base</strong> &mdash; WhatsApp Bot &mdash; v1.0.0 &mdash; built on Baileys v7
 </p>
 
 <p align="center">
   <a href="https://github.com/miuujs/yelib-base/stargazers">
-    <img src="https://img.shields.io/github/stars/miuujs/yelib-base?style=for-the-badge&color=25D366" alt="Stars"/>
+    <img src="https://img.shields.io/github/stars/miuujs/yelib-base?style=for-the-badge&color=25D366&label=Stars" alt="Stars"/>
   </a>
   <a href="https://github.com/miuujs/yelib-base/forks">
-    <img src="https://img.shields.io/github/forks/miuujs/yelib-base?style=for-the-badge&color=128C7E" alt="Forks"/>
+    <img src="https://img.shields.io/github/forks/miuujs/yelib-base?style=for-the-badge&color=128C7E&label=Forks" alt="Forks"/>
   </a>
   <a href="https://github.com/miuujs/yelib-base/issues">
-    <img src="https://img.shields.io/github/issues/miuujs/yelib-base?style=for-the-badge&color=075E54" alt="Issues"/>
+    <img src="https://img.shields.io/github/issues/miuujs/yelib-base?style=for-the-badge&color=075E54&label=Issues" alt="Issues"/>
   </a>
   <a href="https://github.com/miuujs/yelib-base/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-25D366?style=for-the-badge" alt="License"/>
+    <img src="https://img.shields.io/badge/license-MIT-25D366?style=for-the-badge&label=License" alt="License"/>
   </a>
 </p>
 
