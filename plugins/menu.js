@@ -35,8 +35,15 @@ function getDisk() {
   return diskInfoCache
 }
 
+function clockString(ms) {
+  const h = Math.floor(ms / 3600000)
+  const m = Math.floor((ms % 3600000) / 60000)
+  const s = Math.floor((ms % 60000) / 1000)
+  return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':')
+}
+
 export default async ({ sock, m }) => {
-  const uptime = runtime((Date.now() - global.start) / 1000)
+  const uptime = clockString(Date.now() - global.start)
   const nodeVer = process.version
   const platform = process.platform
   const totalMem = os.totalmem()
@@ -72,17 +79,13 @@ Waktu:
 ${dayName}, ${date} ${month} ${year}
 ${time}`
 
-  const buttons = [
-    { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Menu', id: 'menu' }) },
-    { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Info', id: 'info' }) },
-    { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'Donate', id: 'donate' }) }
-  ]
-
   try {
     const msg = {
-      interactiveMessage: {
-        title: text,
-        footer: 'yelib-base',
+      text,
+      contextInfo: {
+        mentionedJid: [m.sender],
+        isForwarded: true,
+        forwardingScore: 999,
         externalAdReply: {
           title: 'yelib-base',
           body: '',
@@ -90,8 +93,7 @@ ${time}`
           mediaType: 1,
           sourceUrl: 'https://github.com/miuujs/yelib-base',
           sourceType: '1'
-        },
-        buttons
+        }
       }
     }
 
