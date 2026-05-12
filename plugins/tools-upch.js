@@ -1,3 +1,8 @@
+import { execSync } from 'child_process'
+import { writeFileSync, unlinkSync } from 'fs'
+import { join } from 'path'
+import { mkdirSync } from 'fs'
+
 export default async ({ sock, m, args, isOwner }) => {
   if (!isOwner) return m.reply('Owner only')
 
@@ -15,12 +20,25 @@ export default async ({ sock, m, args, isOwner }) => {
     await sock.newsletterFollow(chJid).catch(() => {})
 
     const audio = await m.quoted.download()
-    const origMimetype = m.quoted.msg?.mimetype || 'audio/mpeg'
+    const mimetype = m.quoted.msg?.mimetype || 'audio/ogg; codecs=opus'
     const ptt = m.quoted.msg?.ptt || false
 
-    await sock.sendMessage(chJid, { audio, mimetype: origMimetype, ptt })
+    mkdirSync(join(process.cwd(), 'tmp'), { recursive: true })
+    const tmp = join(process.cwd(), 'tmp', 'upch_' + Date.now())
+    writeFileSync(tmp, audio)
+    let seconds = 0
+    try {
+      const out = execSync(
+        `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${tmp}`,
+        { encoding: 'utf-8', timeout: 10000 }
+      )
+      seconds = Math.ceil(parseFloat(out.trim()) || 0)
+    } catch {}
+    try { unlinkSync(tmp) } catch {}
+
+    await sock.sendMessage(chJid, { audio, mimetype, ptt, seconds })
     m.reply('Audio sent to channel successfully')
   } catch (e) {
-    m.reply('Error: ' + e.message)
+    m.reply('Error: ' + (e.stack || e.message))
   }
 }
