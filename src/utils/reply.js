@@ -21,19 +21,20 @@ export async function adReply(sock, m, text, options = {}) {
       mentionedJid: [m.sender, m?.quoted?.sender || ''].filter(Boolean),
       forwardingScore: 999,
       isForwarded: true,
-      externalAdReply: {
-        title: 'yelib-base',
-        body: '',
-        mediaType: 1,
-        thumbnail: menuBuffer || undefined,
-        sourceUrl: '',
-        sourceType: 1,
-        showAdAttribution: false,
-        renderLargerThumbnail: true
-      },
       ...contextInfo
     },
     ...msgOpts
+  }
+
+  if (menuBuffer) {
+    message.contextInfo.externalAdReply = {
+      title: 'yelib-base',
+      body: '',
+      thumbnail: menuBuffer,
+      mediaType: 1,
+      sourceUrl: 'https://github.com/miuujs/yelib-base',
+      sourceType: 1
+    }
   }
 
   return sock.sendMessage(m.chat, message, { quoted: m })
