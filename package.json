@@ -1,0 +1,17 @@
+{
+  "name": "yelib-base",
+  "version": "1.0.0",
+  "description": "Base WhatsApp bot using yelib (miuujs/baileys) - ESM, pairing code, plugins system",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "baileys": "github:miuujs/baileys",
+    "chalk": "^5.4.1",
+    "dotenv": "^16.4.7",
+    "pino": "^9.6.0"
+  },
+  "license": "GPL-3.0"
+}
