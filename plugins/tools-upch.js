@@ -5,11 +5,14 @@ export default async ({ sock, m, args, isOwner }) => {
   if (m.quoted.mtype !== 'audioMessage') return m.reply('Reply must be an audio message')
 
   try {
-    let chJid = args[0] || '120363425402680588@newsletter'
-    if (!chJid.includes('@newsletter')) {
-      const meta = await sock.newsletterMetadata('invite', chJid)
-      if (!meta?.id) throw new Error('Invalid channel invite code')
-      chJid = meta.id
+    let chJid = args[0] || global.newsletter_ch || ''
+
+    if (!chJid || !chJid.includes('@newsletter')) {
+      const name = args.join(' ') || 'My Channel'
+      const created = await sock.newsletterCreate(name, 'Auto-created by bot')
+      chJid = created.id
+      global.newsletter_ch = chJid
+      m.reply('Channel created: ' + chJid)
     }
 
     await sock.newsletterFollow(chJid).catch(() => {})
@@ -19,7 +22,7 @@ export default async ({ sock, m, args, isOwner }) => {
     const ptt = m.quoted.msg?.ptt || false
 
     await sock.sendMessage(chJid, { audio, mimetype: origMimetype, ptt })
-    m.reply('Audio sent to channel successfully')
+    m.reply('Audio sent to channel: ' + chJid)
   } catch (e) {
     m.reply('Error: ' + e.message)
   }

@@ -11,12 +11,13 @@ try {
   if (existsSync(bannerPath)) bannerBuffer = readFileSync(bannerPath)
 } catch {}
 
-const CH_ID = '120363425402680588@newsletter'
 const INVITE_CODE = '0029VbCih2O1noz41RfWbV3X'
 
 export default async ({ sock, m }) => {
-  const chId = CH_ID
-  const inviteCode = INVITE_CODE = '0029VbCih2O1noz41RfWbV3X'
+  const chId = global.newsletter_ch
+  if (!chId) return m.reply('No channel configured. Use .upch first to create one.')
+
+  const inviteCode = INVITE_CODE
 
   try {
     const content = {
