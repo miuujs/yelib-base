@@ -1,67 +1,46 @@
-# yelib-base
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:25D366,100:128C7E&height=200&section=header&text=yelib&fontSize=60&fontColor=fff&animation=fadeIn&fontAlignY=35"/>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
-[![Baileys](https://img.shields.io/badge/Baileys-v7-blue.svg)](https://github.com/WhiskeySockets/Baileys)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/reiwabyte/yelib-base/pulls)
+<p align="center">
+  <strong>WhatsApp Bot</strong> &mdash; v1.0.0 &mdash; built on Baileys v7
+</p>
 
-WhatsApp bot built on Baileys with modular plugin system, group management, and interactive rich message menus.
+<p align="center">
+  <a href="https://github.com/miuujs/yelib-base/stargazers">
+    <img src="https://img.shields.io/github/stars/miuujs/yelib-base?style=for-the-badge&color=25D366" alt="Stars"/>
+  </a>
+  <a href="https://github.com/miuujs/yelib-base/forks">
+    <img src="https://img.shields.io/github/forks/miuujs/yelib-base?style=for-the-badge&color=128C7E" alt="Forks"/>
+  </a>
+  <a href="https://github.com/miuujs/yelib-base/issues">
+    <img src="https://img.shields.io/github/issues/miuujs/yelib-base?style=for-the-badge&color=075E54" alt="Issues"/>
+  </a>
+  <a href="https://github.com/miuujs/yelib-base/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-25D366?style=for-the-badge" alt="License"/>
+  </a>
+</p>
 
----
-
-## Features
-
-- Modular plugin architecture -- each command is a standalone file
-- Multi-prefix support (`.`, `!`, `/`, `#`, `$`, `-`, `+`, `;`, `~`, `&`, `%`)
-- No-prefix mode for natural command input
-- Self/Public mode toggle
-- Pairing code authentication
-- Interactive rich message menus (tables, lists)
-- Auto-session management with corruption recovery
-- Memory-aware auto-restart
-- Group administration tools
-
----
-
-## Prerequisites
-
-- Node.js 18+
-- npm
+> [!CAUTION]
+> This project is not affiliated with or endorsed by WhatsApp. Use at your own discretion.
+> Do not spam or misuse this software for automated bulk messaging.
 
 ---
 
 ## Installation
 
 ```bash
-git clone https://github.com/reiwabyte/yelib-base.git
+git clone https://github.com/miuujs/yelib-base
 cd yelib-base
 npm install
 cp .env.example .env
 ```
 
-Edit `.env` with your WhatsApp number:
+Edit `.env` and set your phone number:
 
 ```env
 PAIRNO=6281234567890
 ```
-
----
-
-## Environment Variables
-
-| Variable    | Description                          | Default                        |
-|-------------|--------------------------------------|--------------------------------|
-| PAIRNO      | Phone number for pairing             | (required)                     |
-| PAIRCODE    | Enable pairing code                  | true                           |
-| SESSION     | Session folder name                  | session                        |
-| MODE        | Bot mode (self/public)               | self                           |
-| PREFIX      | Command prefixes (comma-separated)   | .,!,/,#,$,-,+,;,~,&,%         |
-| NOPREFIX    | Enable commands without prefix       | true                           |
-| OWNERS      | Owner numbers (comma-separated)      | (same as PAIRNO)               |
-| OWNER       | Owner display name                   | miuujs                         |
-| PACK        | Sticker pack name                    | yelib-base                     |
-| AUTHOR      | Sticker author name                  | yelib                          |
-| TZ          | Timezone                             | Asia/Jakarta                   |
 
 ---
 
@@ -71,66 +50,32 @@ PAIRNO=6281234567890
 npm start
 ```
 
-For development with auto-reload:
+Development mode with auto-reload:
 
 ```bash
 npm run dev
 ```
 
+Pair the bot by scanning the QR code or using the pairing code (default).
+
 ---
 
-## Command Reference
+## Environment
 
-### Main
+| Variable    | Description                        | Default                        |
+|-------------|------------------------------------|--------------------------------|
+| PAIRNO      | Phone number for pairing           | (required)                     |
+| PAIRCODE    | Enable pairing code                | true                           |
+| MODE        | Bot mode (self / public)           | self                           |
+| PREFIX      | Command prefixes (comma-separated) | .,!,/,#,$,-,+,;,~,&,%         |
+| NOPREFIX    | Respond without prefix             | true                           |
+| OWNERS      | Owner numbers                      | (same as PAIRNO)               |
 
-| Command       | Description          |
-|---------------|----------------------|
-| .menu         | Show main menu       |
-| .groupmenu    | Show group commands  |
-| .self         | Enable self mode     |
-| .public       | Enable public mode   |
+---
 
-### Admin Tools
+## Commands
 
-| Command       | Description              |
-|---------------|--------------------------|
-| .kick         | Remove members           |
-| .add          | Add or invite members    |
-| .promote      | Promote to admin         |
-| .demote       | Demote from admin        |
-| .lock         | Lock group info          |
-| .unlock       | Unlock group info        |
-
-### Group Settings
-
-| Command       | Description              |
-|---------------|--------------------------|
-| .group open   | Open group (all send)    |
-| .group close  | Close group (admins only)|
-| .approval     | Toggle join approval     |
-| .addmode      | Set member add mode      |
-| .setname      | Change group name        |
-| .setdesc      | Change group description |
-| .setpp        | Change group icon        |
-
-### Info & Invites
-
-| Command       | Description              |
-|---------------|--------------------------|
-| .link         | Get invite link          |
-| .revoke       | Revoke invite link       |
-| .info         | Show group information   |
-| .tagall       | Tag all members          |
-| .hidetag      | Hidden tag all           |
-| .requestlist  | List pending requests    |
-| .approve      | Approve join requests    |
-| .reject       | Reject join requests     |
-
-### Other
-
-| Command       | Description              |
-|---------------|--------------------------|
-| .leave        | Leave group              |
+All available commands are documented in [COMMANDS.md](COMMANDS.md).
 
 ---
 
@@ -138,63 +83,17 @@ npm run dev
 
 ```
 yelib-base/
-  index.js              Entry point
-  plugins/              Command plugins (one file per command)
-    menu.js
-    group-menu.js
-    self.js
-    public.js
-    group-kick.js
-    group-add.js
-    ...
+  index.js          Entry point
+  plugins/          Command modules
   src/
-    config.js           Global configuration
-    utils/
-      handler.js        Message handler (smsg)
-      reply.js          Ad reply formatter
-      logger.js         Logging utility
-      tools.js          Helper functions
-      tmp.js            Temp file manager
-  media/                Assets (banner, thumbnails)
-  session/              Auth session data (gitignored)
-  tmp/                  Temp files (auto-cleaned)
+    config.js       Configuration
+    utils/          Handlers, reply, logger, tools
+  media/            Assets
+  session/          Auth data
 ```
-
----
-
-## Extending
-
-Create a new file in `plugins/` named after the command:
-
-```js
-export default async ({ sock, m, args, isOwner, isGroup }) => {
-  // your logic here
-}
-```
-
-The plugin loads automatically. For group-only plugins, prefix with `group-` to enable `.command` alias.
 
 ---
 
 ## License
 
 [MIT](LICENSE)
-
----
-
-## Code of Conduct
-
-This project follows a standard code of conduct. By participating, you agree to maintain a respectful and harassment-free environment for everyone.
-
-- Use inclusive language
-- Be respectful of differing viewpoints
-- Accept constructive criticism gracefully
-- Focus on what is best for the community
-
-Violations may result in temporary or permanent exclusion from the project.
-
----
-
-## Disclaimer
-
-This project is not affiliated with or endorsed by WhatsApp. Use at your own discretion.
