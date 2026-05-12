@@ -93,9 +93,7 @@ ${time}`
               {
                 title: 'Menu',
                 rows: [
-                  { title: 'Menu', id: 'menu', description: 'Show bot menu' },
-                  { title: 'Info', id: 'info', description: 'Bot information' },
-                  { title: 'Donate', id: 'donate', description: 'Support us' }
+                  { title: 'Group Menu', id: 'groupmenu', description: 'Group commands list' }
                 ]
               }
             ]

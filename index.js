@@ -21,7 +21,10 @@ async function loadPlugins() {
       const plugin = await import(join(pluginsDir, file) + '?t=' + Date.now())
       let cmd = file.replace('.js', '')
       commandMap[cmd] = plugin.default || plugin
-      if (cmd.startsWith('group-')) commandMap[cmd.replace('group-', '')] = commandMap[cmd]
+      if (cmd.startsWith('group-')) {
+        commandMap[cmd.replace('group-', '')] = commandMap[cmd]
+        commandMap[cmd.replace('-', '')] = commandMap[cmd]
+      }
     } catch (e) {
       logger.error('Failed to load ' + file)
     }
