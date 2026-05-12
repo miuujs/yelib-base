@@ -1,7 +1,7 @@
 import './src/config.js'
 import pino from 'pino'
 import * as bail from 'baileys'
-import { readdirSync, existsSync, rmSync } from 'fs'
+import { readdirSync, existsSync, rmSync, readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import logger from './src/utils/logger.js'
@@ -33,12 +33,30 @@ async function loadPlugins() {
 await loadPlugins()
 
 async function start() {
+  const sesiPath = join(__dirname, pair.sesi)
+  const credsFile = join(sesiPath, 'creds.json')
+  if (existsSync(credsFile)) {
+    try {
+      const creds = JSON.parse(readFileSync(credsFile, 'utf-8'))
+      if (!creds.registered) {
+        rmSync(sesiPath, { recursive: true, force: true })
+        logger.info('Stale session cleaned')
+      }
+    } catch {
+      rmSync(sesiPath, { recursive: true, force: true })
+      logger.info('Corrupt session cleaned')
+    }
+  } else if (existsSync(sesiPath)) {
+    rmSync(sesiPath, { recursive: true, force: true })
+    logger.info('Empty session folder cleaned')
+  }
+
   const { state, saveCreds } = await bail.useMultiFileAuthState(pair.sesi)
 
   global.clients = await clientsConfig({
     logger: pino({ level: 'silent' }),
     printQRInTerminal: !pair.isPair,
-    browser: ['Linux', 'Chrome', ''],
+    browser: ['Windows', 'Chrome', ''],
     auth: {
       creds: state.creds,
       keys: bail.makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }))
@@ -77,7 +95,6 @@ async function start() {
         logger.info('Restarting in 5 seconds...')
         setTimeout(start, 5000)
       } else {
-        const sesiPath = join(__dirname, pair.sesi)
         if (existsSync(sesiPath)) {
           rmSync(sesiPath, { recursive: true, force: true })
           logger.info('Session deleted: ' + pair.sesi)
