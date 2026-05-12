@@ -109,6 +109,9 @@ async function start() {
     } else if (connection === 'connecting') {
       logger.info('Connecting...')
     }
+    if (update.qr) {
+      logger.info('QR code received, scan with WhatsApp!')
+    }
   })
 
   sock.ev.on('creds.update', saveCreds)
