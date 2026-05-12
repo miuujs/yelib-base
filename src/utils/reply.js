@@ -13,24 +13,28 @@ try {
   }
 } catch {}
 
-export async function adReply(sock, m, text, options = {}) {
-  const message = { text }
-
-  message.contextInfo = {
-    mentionedJid: [m.sender, m?.quoted?.sender || ''].filter(Boolean),
-    isForwarded: true,
-    forwardingScore: 999
-  }
-
-  if (menuBuffer) {
-    message.contextInfo.externalAdReply = {
-      title: 'yelib-base',
-      body: '',
-      thumbnail: menuBuffer,
-      mediaType: 1,
-      sourceUrl: 'https://github.com/miuujs/yelib-base'
+export async function adReply(sock, m, text) {
+  try {
+    const msg = { text }
+    msg.contextInfo = {
+      mentionedJid: [m.sender, m?.quoted?.sender || ''].filter(Boolean),
+      isForwarded: true,
+      forwardingScore: 999
     }
-  }
 
-  return sock.sendMessage(m.chat, message, { quoted: m })
+    if (menuBuffer) {
+      msg.contextInfo.externalAdReply = {
+        title: 'yelib-base',
+        body: '',
+        thumbnail: menuBuffer,
+        mediaType: 1,
+        sourceUrl: 'https://github.com/miuujs/yelib-base',
+        sourceType: 1
+      }
+    }
+
+    return await sock.sendMessage(m.chat, msg, { quoted: m })
+  } catch (e) {
+    return sock.sendMessage(m.chat, { text }, { quoted: m })
+  }
 }
