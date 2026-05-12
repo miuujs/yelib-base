@@ -98,6 +98,10 @@ ${time}`
               }
             ]
           })
+        },
+        {
+          name: 'quick_reply',
+          buttonParamsJson: JSON.stringify({ display_text: 'Owner', id: 'owner' })
         }
       ]
     }
