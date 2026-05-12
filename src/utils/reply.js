@@ -13,8 +13,17 @@ try {
   }
 } catch {}
 
+function clockString(ms) {
+  const h = Math.floor(ms / 3600000)
+  const m = Math.floor((ms % 3600000) / 60000)
+  const s = Math.floor((ms % 60000) / 1000)
+  return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':')
+}
+
 export async function adReply(sock, m, text) {
   try {
+    const bodyText = 'Runtime: ' + clockString(Date.now() - global.start)
+
     const msg = { text }
     msg.contextInfo = {
       mentionedJid: [m.sender, m?.quoted?.sender || ''].filter(Boolean),
@@ -25,7 +34,7 @@ export async function adReply(sock, m, text) {
     if (menuBuffer) {
       msg.contextInfo.externalAdReply = {
         title: 'yelib-base',
-        body: '',
+        body: bodyText,
         thumbnail: menuBuffer,
         mediaType: 1,
         sourceUrl: 'https://github.com/miuujs/yelib-base',

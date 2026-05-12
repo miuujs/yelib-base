@@ -79,9 +79,10 @@ export async function sockConfig(opts) {
 
 function extractText(msg, mtype) {
   if (!msg) return ''
+  const target = (mtype && mtype !== 'conversation' && msg[mtype]) || msg
   if (mtype === 'conversation') return msg.conversation || ''
-  if (msg.text) return msg.text
-  if (msg.caption) return msg.caption
+  if (target.text) return target.text
+  if (target.caption) return target.caption
   if (msg.contentText) return msg.contentText
   if (msg.hydratedContentText) return msg.hydratedContentText
   if (msg.selectedButtonId) return msg.selectedButtonId

@@ -22,12 +22,32 @@ async function loadPlugins() {
       const plugin = await import(join(pluginsDir, file) + '?t=' + Date.now())
       let cmd = file.replace('.js', '')
       commandMap[cmd] = plugin.default || plugin
+      if (plugin.aliases) {
+        for (const alias of plugin.aliases) {
+          commandMap[alias] = commandMap[cmd]
+        }
+      }
       if (cmd.startsWith('group-')) {
-        commandMap[cmd.replace('group-', '')] = commandMap[cmd]
+        const short = cmd.replace('group-', '')
+        if (short !== 'menu') commandMap[short] = commandMap[cmd]
         commandMap[cmd.replace('-', '')] = commandMap[cmd]
       }
       if (cmd.startsWith('owner-')) {
+        const short = cmd.replace('owner-', '')
+        if (short !== 'menu') commandMap[short] = commandMap[cmd]
         commandMap[cmd.replace('-', '')] = commandMap[cmd]
+        if (cmd === 'owner-eval') commandMap['ev'] = commandMap[cmd]
+      }
+      if (cmd.startsWith('download-')) {
+        const short = cmd.replace('download-', '')
+        if (short !== 'menu') commandMap[short] = commandMap[cmd]
+        commandMap[cmd.replace('-', '')] = commandMap[cmd]
+      }
+      if (cmd.startsWith('tools-')) {
+        const short = cmd.replace('tools-', '')
+        if (short !== 'menu') commandMap[short] = commandMap[cmd]
+        commandMap[cmd.replace('-', '')] = commandMap[cmd]
+        if (cmd === 'tools-sticker') commandMap['s'] = commandMap[cmd]
       }
     } catch (e) {
       logger.error('Failed to load ' + file)
@@ -64,7 +84,7 @@ async function start() {
       keys: bail.makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }))
     },
     generateHighQualityLinkPreview: true,
-    shouldIgnoreJid: (jid) => jid.endsWith('@newsletter') || jid.includes('broadcast')
+    shouldIgnoreJid: (jid) => jid.includes('broadcast')
   })
 
   if (!sock.authState.creds.registered) {
