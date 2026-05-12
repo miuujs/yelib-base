@@ -16,18 +16,25 @@ try {
 export async function adReply(clients, m, text, options = {}) {
   const { contextInfo, ...msgOpts } = options
   const message = {
-    image: menuBuffer || undefined,
-    caption: text,
+    text,
     contextInfo: {
       mentionedJid: [m.sender, m?.quoted?.sender || ''].filter(Boolean),
       forwardingScore: 999,
       isForwarded: true,
+      externalAdReply: {
+        title: 'yelib-base',
+        body: '',
+        mediaType: 1,
+        thumbnail: menuBuffer || undefined,
+        sourceUrl: '',
+        sourceType: 1,
+        showAdAttribution: false,
+        renderLargerThumbnail: true
+      },
       ...contextInfo
     },
     ...msgOpts
   }
-
-  if (!message.image) delete message.image
 
   return clients.sendMessage(m.chat, message, { quoted: m })
 }
