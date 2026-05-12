@@ -80,24 +80,7 @@ ${dayName}, ${date} ${month} ${year}
 ${time}`
 
   try {
-    const msg = {
-      text,
-      contextInfo: {
-        mentionedJid: [m.sender],
-        isForwarded: true,
-        forwardingScore: 999,
-        externalAdReply: {
-          title: 'yelib-base',
-          body: '',
-          thumbnail: bannerBuffer,
-          mediaType: 1,
-          sourceUrl: 'https://github.com/miuujs/yelib-base',
-          sourceType: '1'
-        }
-      }
-    }
-
-    await sock.sendMessage(m.chat, msg, { quoted: m })
+    await sock.sendMessage(m.chat, { image: bannerBuffer, caption: text }, { quoted: m })
   } catch (e) {
     await sock.sendMessage(m.chat, { text }, { quoted: m })
   }
