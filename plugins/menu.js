@@ -93,7 +93,8 @@ ${time}`
               {
                 title: 'Menu',
                 rows: [
-                  { title: 'Group Menu', id: 'groupmenu', description: 'Group commands list' }
+                  { title: 'Group Menu', id: 'groupmenu', description: 'Group commands list' },
+                  { title: 'Owner Menu', id: 'ownermenu', description: 'Owner commands list' }
                 ]
               }
             ]
