@@ -26,6 +26,9 @@ async function loadPlugins() {
         commandMap[cmd.replace('group-', '')] = commandMap[cmd]
         commandMap[cmd.replace('-', '')] = commandMap[cmd]
       }
+      if (cmd.startsWith('owner-')) {
+        commandMap[cmd.replace('-', '')] = commandMap[cmd]
+      }
     } catch (e) {
       logger.error('Failed to load ' + file)
     }
