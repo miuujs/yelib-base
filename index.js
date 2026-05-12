@@ -82,7 +82,8 @@ async function start() {
           rmSync(sesiPath, { recursive: true, force: true })
           logger.info('Session deleted: ' + pair.sesi)
         }
-        logger.error('Logged out')
+        logger.info('Restarting for re-pair...')
+        setTimeout(start, 3000)
       }
     } else if (connection === 'open') {
       logger.info('Connected to WhatsApp')
