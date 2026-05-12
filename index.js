@@ -33,22 +33,19 @@ async function loadPlugins() {
 await loadPlugins()
 
 async function start() {
+  console.clear()
   const sesiPath = join(__dirname, pair.sesi)
   const credsFile = join(sesiPath, 'creds.json')
-  if (existsSync(credsFile)) {
-    try {
-      const creds = JSON.parse(readFileSync(credsFile, 'utf-8'))
-      if (!creds.registered) {
-        rmSync(sesiPath, { recursive: true, force: true })
-        logger.info('Stale session cleaned')
-      }
-    } catch {
+  if (existsSync(sesiPath)) {
+    if (!existsSync(credsFile)) {
       rmSync(sesiPath, { recursive: true, force: true })
-      logger.info('Corrupt session cleaned')
+    } else {
+      try {
+        JSON.parse(readFileSync(credsFile, 'utf-8'))
+      } catch {
+        rmSync(sesiPath, { recursive: true, force: true })
+      }
     }
-  } else if (existsSync(sesiPath)) {
-    rmSync(sesiPath, { recursive: true, force: true })
-    logger.info('Empty session folder cleaned')
   }
 
   const { state, saveCreds } = await bail.useMultiFileAuthState(pair.sesi)
