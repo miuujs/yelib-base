@@ -100,27 +100,16 @@ ${time}`
     }, { quoted: m })
 
     await sock.sendMessage(m.chat, {
-      interactiveMessage: {
-        title: 'Select a menu:',
-        footer: 'yelib-base',
-        header: 'Options',
-        buttons: [
-          {
-            name: 'quick_reply',
-            buttonParamsJson: JSON.stringify({ display_text: 'Menu', id: 'menu' })
-          },
-          {
-            name: 'quick_reply',
-            buttonParamsJson: JSON.stringify({ display_text: 'Info', id: 'info' })
-          },
-          {
-            name: 'quick_reply',
-            buttonParamsJson: JSON.stringify({ display_text: 'Donate', id: 'donate' })
-          }
-        ]
-      }
+      text: 'Select a menu:',
+      footer: 'yelib-base',
+      interactiveButtons: [
+        { name: 'quick_reply', buttonParamsJson: { display_text: 'Menu', id: 'menu' } },
+        { name: 'quick_reply', buttonParamsJson: { display_text: 'Info', id: 'info' } },
+        { name: 'quick_reply', buttonParamsJson: { display_text: 'Donate', id: 'donate' } }
+      ]
     })
   } catch (e) {
+    console.error('Menu error:', e)
     await sock.sendMessage(m.chat, { text }, { quoted: m })
   }
 }
