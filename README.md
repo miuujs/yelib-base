@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>yelib-base</strong> &mdash; WhatsApp Bot &mdash; v1.0.0 &mdash; built on Baileys v7
+  <strong>yelib-base</strong> &mdash; WhatsApp Bot &mdash; v1.0.0 &mdash; built on <a href="https://github.com/miuujs/baileys">miuujs/baileys</a>
 </p>
 
 <p align="center">
