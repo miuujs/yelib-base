@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import os from 'os'
-import { runtime, formatBytes } from '../src/utils/tools.js'
+import { formatBytes } from '../src/utils/tools.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -80,7 +80,7 @@ ${time}`
   await sock.sendMessage(m.chat, {
     interactiveMessage: {
       title: text,
-      footer: 'yelib-base',
+      footer: 'Powered by yelib',
       image: bannerBuffer,
       buttons: [
         {
