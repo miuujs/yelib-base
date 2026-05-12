@@ -1,5 +1,6 @@
 import './src/config.js'
 import pino from 'pino'
+import QR from 'qrcode'
 import * as bail from 'baileys'
 import { readdirSync, existsSync, rmSync, readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
@@ -54,7 +55,6 @@ async function start() {
 
   global.sock = await sockConfig({
     logger: pino({ level: 'silent' }),
-    printQRInTerminal: !pair.isPair,
     browser: ['Windows', 'Chrome', ''],
     auth: {
       creds: state.creds,
@@ -64,12 +64,16 @@ async function start() {
     shouldIgnoreJid: (jid) => jid.endsWith('@newsletter') || jid.includes('broadcast')
   })
 
-  if (pair.isPair && !sock.authState.creds.registered) {
-    const phone = pair.no.replace(/[^0-9]/g, '')
-    await bail.delay(3000)
-    let code = await sock.requestPairingCode(phone, 'AAAAAAAA')
-    code = code?.match(/.{1,4}/g)?.join('-') || code
-    logger.info('Pairing code:', code)
+  if (!sock.authState.creds.registered) {
+    if (pair.isPair) {
+      const phone = pair.no.replace(/[^0-9]/g, '')
+      await bail.delay(3000)
+      let code = await sock.requestPairingCode(phone, 'AAAAAAAA')
+      code = code?.match(/.{1,4}/g)?.join('-') || code
+      logger.info('Pairing code:', code)
+    } else {
+      logger.info('Waiting for QR code scan...')
+    }
   }
 
   sock.ev.on('messages.upsert', async (chatUpdate) => {
@@ -110,7 +114,10 @@ async function start() {
       logger.info('Connecting...')
     }
     if (update.qr) {
-      logger.info('QR code received, scan with WhatsApp!')
+      if (!pair.isPair) {
+        console.log('\n' + await QR.toString(update.qr, { type: 'terminal', small: true }))
+        logger.info('Scan the QR code above with WhatsApp')
+      }
     }
   })
 
