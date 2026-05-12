@@ -32,7 +32,7 @@ export async function reloadPlugins() {
     }
   }
 
-  logger.info('Commands loaded: ' + Object.keys(commandMap).join(', '))
+  logger.info('Commands: ' + Object.keys(commandMap).join(', '))
 }
 
 await reloadPlugins()
@@ -40,13 +40,28 @@ await reloadPlugins()
 export default async (clients, m) => {
   try {
     const body = m.body || ''
-    const prefix = (set.prefix || []).find(p => body.startsWith(p))
-    if (!prefix) return
+    if (!body) return
 
-    const sliced = body.slice(prefix.length).trim()
-    const parts = sliced.split(/ +/)
-    const cmd = parts[0]?.toLowerCase() || ''
-    const args = parts.slice(1).join(' ')
+    const prefixes = set.prefix || ['.']
+    const matchedPrefix = prefixes.find(p => body.startsWith(p))
+
+    let cmd = ''
+    let args = ''
+
+    if (matchedPrefix) {
+      const sliced = body.slice(matchedPrefix.length).trim()
+      const parts = sliced.split(/ +/)
+      cmd = parts[0]?.toLowerCase() || ''
+      args = parts.slice(1).join(' ')
+    } else {
+      const parts = body.trim().split(/ +/)
+      const first = parts[0]?.toLowerCase() || ''
+      if (commandMap[first]) {
+        cmd = first
+        args = parts.slice(1).join(' ')
+      }
+    }
+
     if (!cmd) return
 
     const def = commandMap[cmd]
@@ -63,7 +78,7 @@ export default async (clients, m) => {
       return m.reply('Group only')
     }
 
-    await def.handler({ clients, m, cmd, args, prefix, body })
+    await def.handler({ clients, m, cmd, args, prefix: matchedPrefix || '', body })
     logger.print(m)
 
   } catch (e) {

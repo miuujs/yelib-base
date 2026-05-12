@@ -20,7 +20,7 @@ global.owner = {
 
 global.set = {
   prefix: parseList(process.env.PREFIX || '.'),
-  self: (process.env.MODE || 'public') === 'self'
+  self: process.env.MODE !== 'public'
 }
 
 global.pair = {
