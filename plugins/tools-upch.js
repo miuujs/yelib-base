@@ -8,8 +8,10 @@ export default async ({ sock, m, args, isOwner }) => {
     let chJid = args[0] || global.newsletter_ch || ''
 
     if (!chJid || !chJid.includes('@newsletter')) {
-      const name = args.join(' ') || 'My Channel'
-      const created = await sock.newsletterCreate(name, 'Auto-created by bot')
+      if (!args.length) return m.reply('Specify channel name or JID: .upch MyChannel')
+      const name = args.join(' ')
+      const created = await sock.newsletterCreate(name, '')
+      if (!created?.id) return m.reply('Failed to create channel')
       chJid = created.id
       global.newsletter_ch = chJid
       m.reply('Channel created: ' + chJid)
