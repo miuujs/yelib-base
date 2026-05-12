@@ -19,10 +19,8 @@ async function loadPlugins() {
   for (const file of files) {
     try {
       const plugin = await import(join(pluginsDir, file) + '?t=' + Date.now())
-      if (!plugin.commands) continue
-      for (const [cmd, def] of Object.entries(plugin.commands)) {
-        commandMap[cmd] = def
-      }
+      const cmd = file.replace('.js', '')
+      commandMap[cmd] = plugin.default || plugin
     } catch (e) {
       logger.error('Failed to load ' + file)
     }
@@ -141,13 +139,12 @@ async function routeCommand(sock, m) {
       }
     }
     if (!cmd) return
-    const def = commandMap[cmd]
-    if (!def) return
+    const handler = commandMap[cmd]
+    if (!handler) return
     const sender = m.sender?.split('@')[0] || ''
     const isOwner = owner.numbers.includes(sender)
-    if (def.owner && !isOwner) return m.reply('Owner only')
-    if (def.group && !m.isGroup) return m.reply('Group only')
-    await def.handler({ sock, m, cmd, args, prefix: matchedPrefix || '', body })
+    const isGroup = m.isGroup
+    await handler({ sock, m, cmd, args, prefix: matchedPrefix || '', body, isOwner, isGroup })
   } catch (e) {
     logger.error('Route error: ' + e.message)
   }
