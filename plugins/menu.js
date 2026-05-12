@@ -65,18 +65,18 @@ export default async ({ sock, m }) => {
   const year = now.getFullYear()
   const time = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
-  const text = `Selamat Datang
-Halo ${m.pushName || m.sender.split('@')[0]} | orgnz miuubyte
+  const text = `*Selamat Datang*
+*Halo ${m.pushName || m.sender.split('@')[0]} | orgnz miuubyte*
 
-Informasi Bot:
-Runtime : ${uptime}
-Node.js : ${nodeVer}
-Platform : ${platform}
-RAM : ${ramUsed} / ${ramTotal}
-CPU : ${cpuModel} (${cpuCores} core)
-Disk : ${disk}
+*Informasi Bot:*
+*Runtime* : ${uptime}
+*Node.js* : ${nodeVer}
+*Platform* : ${platform}
+*RAM* : ${ramUsed} / ${ramTotal}
+*CPU* : ${cpuModel} (${cpuCores} core)
+*Disk* : ${disk}
 
-Waktu:
+*Waktu:*
 ${dayName}, ${date} ${month} ${year}
 ${time}`
 
