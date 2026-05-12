@@ -39,4 +39,3 @@ global.bail = bail
 global.chalk = chalk
 global.start = Date.now()
 
-logger.info('Config loaded | Mode: ' + (set.self ? 'Self' : 'Public') + ' | Noprefix: ' + set.noprefix + ' | Prefix: ' + set.prefix.join(', '))

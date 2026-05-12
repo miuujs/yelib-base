@@ -32,7 +32,7 @@ export async function reloadPlugins() {
     }
   }
 
-  logger.info('Commands: ' + Object.keys(commandMap).join(', '))
+  logger.info('Plugins: ' + files.length + ' fix')
 }
 
 await reloadPlugins()
