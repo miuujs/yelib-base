@@ -88,10 +88,21 @@ export default async ({ sock, m, args }) => {
     save('yt_' + Date.now() + '.' + ext, Buffer.from(mediaData))
 
     if (type === 'audio') {
+      const thumbRes = await axios.get(`https://i.ytimg.com/vi/${id}/hqdefault.jpg`, { responseType: 'arraybuffer' }).catch(() => null)
       await sock.sendMessage(m.chat, {
         audio: Buffer.from(mediaData),
         mimetype: 'audio/mpeg',
-        ptt: false
+        ptt: false,
+        contextInfo: {
+          externalAdReply: {
+            title: dec.title || 'YouTube Audio',
+            body: '',
+            thumbnail: thumbRes ? Buffer.from(thumbRes.data) : undefined,
+            sourceUrl: `https://youtu.be/${id}`,
+            mediaType: 1,
+            renderLargerThumbnail: true
+          }
+        }
       }, { quoted: m })
     } else {
       await sock.sendMessage(m.chat, {
