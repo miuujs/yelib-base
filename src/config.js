@@ -16,7 +16,7 @@ global.set = {
 
 global.pair = {
   no: process.env.PAIRNO || '6283891882373',
-  isPair: process.env.PAIRCODE !== 'false',
+  isPair: true,
   sesi: process.env.SESSION || 'session'
 }
 
