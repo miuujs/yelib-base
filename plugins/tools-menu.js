@@ -18,7 +18,9 @@ export default async ({ sock, m }) => {
           title: 'Media Tools',
           rows: [
             { items: ['.sticker / .s', 'Convert image/video to sticker'] },
-            { items: ['.toimg / .toimage', 'Convert sticker to image'] }
+            { items: ['.toimg / .toimage', 'Convert sticker to image'] },
+            { items: ['.tomp3', 'Convert video/audio to MP3'] },
+            { items: ['.tovn', 'Convert audio to voice note'] }
           ]
         }
       },
