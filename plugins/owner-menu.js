@@ -8,8 +8,28 @@ export default async ({ sock, m }) => {
         tableMetadata: {
           title: 'Mode',
           rows: [
-            { items: ['.self', 'Set mode to self'] },
-            { items: ['.public', 'Set mode to public'] }
+            { items: ['.self', 'Set bot to self mode'] },
+            { items: ['.public', 'Set bot to public mode'] }
+          ]
+        }
+      },
+      {
+        messageType: 4,
+        tableMetadata: {
+          title: 'Execution',
+          rows: [
+            { items: ['.exec', 'Execute shell command'] },
+            { items: ['.ev', 'Eval JS / dump message JSON'] }
+          ]
+        }
+      },
+      {
+        messageType: 4,
+        tableMetadata: {
+          title: 'Media',
+          rows: [
+            { items: ['.rvo', 'Read view-once media'] },
+            { items: ['.swgc / .statusgroup', 'Post group status'] }
           ]
         }
       },
