@@ -4,7 +4,7 @@ import { dirname, join } from 'path'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const script = join(__dirname, '../speedtest.py')
+const script = join(__dirname, '../spdtest.py')
 
 export default async ({ sock, m }) => {
   await m.reply('Running speedtest... (60s)')
