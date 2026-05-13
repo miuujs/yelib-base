@@ -22,7 +22,7 @@ export default async ({ sock, m }) => {
           title: 'Audio & Files',
           rows: [
             { items: ['.play', 'Play YouTube audio by search/URL'] },
-            { items: ['.spotify', 'Download Spotify track'] }
+            { items: ['.spotify', 'Download track / browse playlist'] }
           ]
         }
       },

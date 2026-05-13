@@ -27,7 +27,7 @@ async function getCdn() {
   return res.data?.cdn || null
 }
 
-async function downloadYouTubeAudio(videoId, onTitle) {
+async function downloadYouTubeAudio(videoId) {
   const cdn = await getCdn()
   if (!cdn) throw new Error('No CDN available')
 
@@ -37,7 +37,6 @@ async function downloadYouTubeAudio(videoId, onTitle) {
   if (!info.data) throw new Error(info.message || 'Failed to get video info')
 
   const dec = decrypt(info.data)
-  if (onTitle) onTitle(dec.title)
 
   const { data: dl } = await api.post(`https://${cdn}/download`, {
     id: videoId,
@@ -58,7 +57,7 @@ async function downloadYouTubeAudio(videoId, onTitle) {
     }
   })
 
-  return mediaData
+  return { buffer: mediaData, title: dec.title }
 }
 
 function extractTrackId(text) {
@@ -86,62 +85,91 @@ async function getTrackMeta(trackId) {
   return { title, artist, thumb }
 }
 
+function extractPlaylistTracks(data) {
+  const uris = [...new Set((data.match(/spotify:track:([a-zA-Z0-9]{22})/g) || []).map(s => s.split(':')[2]))]
+  const titles = []
+  const seen = new Set()
+  const regex = /"title":"([^"]+)"/g
+  let m
+  while ((m = regex.exec(data)) !== null) {
+    if (!seen.has(m[1])) { seen.add(m[1]); titles.push(m[1]); }
+  }
+  const trackTitles = titles.slice(1).filter(t => t !== titles[0])
+  return uris.slice(0, 30).map((id, i) => ({ id, title: trackTitles[i] || 'Unknown Track' }))
+}
+
+async function playTrack(sock, m, trackId, title, artist, thumb) {
+  const searchQuery = `${title} ${artist}`.trim()
+  await m.reply(`*Searching:* ${title}${artist ? ' - ' + artist : ''}`)
+
+  const search = await yts(searchQuery + ' song')
+  const video = search.videos?.[0]
+  if (!video) throw new Error('No YouTube match found for: ' + title)
+
+  await m.reply(`*Found:* ${video.title}\nDownloading...`)
+
+  const { buffer } = await downloadYouTubeAudio(video.videoId)
+
+  save('spotify_' + Date.now() + '.mp3', Buffer.from(buffer))
+
+  await sock.sendMessage(m.chat, {
+    audio: Buffer.from(buffer),
+    mimetype: 'audio/mpeg',
+    ptt: false,
+    contextInfo: {
+      externalAdReply: {
+        title: title,
+        body: artist || 'Spotify',
+        mediaType: 2,
+        thumbnailUrl: thumb
+      }
+    }
+  }, { quoted: m })
+}
+
 export default async ({ sock, m, args }) => {
   const input = args.join(' ') || (m.quoted?.text || '')
   const trackId = extractTrackId(input)
   const playlistId = extractPlaylistId(input)
+  const storeKey = 'spotify_playlist_' + m.chat
 
-  if (!trackId && !playlistId) return m.reply('Usage: .spotify <track-url|playlist-url|track-id>')
+  if (!trackId && !playlistId) {
+    if (/^\d+$/.test(input.trim())) {
+      const stored = global[storeKey]
+      if (!stored) return m.reply('No playlist loaded. Send a playlist URL first.')
+      const num = parseInt(input.trim())
+      const track = stored[num - 1]
+      if (!track) return m.reply('Invalid number. Choose 1-' + stored.length)
+      try {
+        const meta = await getTrackMeta(track.id)
+        await playTrack(sock, m, track.id, meta.title, meta.artist, meta.thumb)
+      } catch (e) {
+        m.reply('Error: ' + e.message)
+      }
+      return
+    }
+    return m.reply('Usage: .spotify <track-url|playlist-url|track-id>')
+  }
 
   try {
-    let title, artist, thumb, searchQuery
-
     if (playlistId) {
-      const { data } = await axios.get(`https://open.spotify.com/playlist/${playlistId}`, {
+      const { data } = await axios.get(`https://open.spotify.com/embed/playlist/${playlistId}`, {
         headers: { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
         timeout: 10000
       })
-      const uniqueTracks = [...new Set((data.match(/track\/([a-zA-Z0-9]{22})/g) || []).map(s => s.replace('track/', '')))]
-      if (!uniqueTracks.length) return m.reply('No tracks found in playlist')
-      await m.reply(`*Playlist:* ${uniqueTracks.length} tracks found\nDownloading first track...`)
-      const firstMeta = await getTrackMeta(uniqueTracks[0])
-      title = firstMeta.title
-      artist = firstMeta.artist
-      thumb = firstMeta.thumb
-      searchQuery = `${title} ${artist}`.trim()
-    } else {
-      const meta = await getTrackMeta(trackId)
-      title = meta.title
-      artist = meta.artist
-      thumb = meta.thumb
-      searchQuery = `${title} ${artist}`.trim()
+      const tracks = extractPlaylistTracks(data)
+      if (!tracks.length) return m.reply('No tracks found in playlist')
+
+      global[storeKey] = tracks
+
+      const lines = tracks.slice(0, 30).map((t, i) => `${i + 1}. ${t.title}`)
+      const text = '*Spotify Playlist*\n' + lines.join('\n') + '\n\n_Send_ `.spotify <number>` _to play a track_'
+      await sock.sendMessage(m.chat, { text }, { quoted: m })
+      return
     }
 
-    await m.reply(`*Searching:* ${title}${artist ? ' - ' + artist : ''}`)
-
-    const search = await yts(searchQuery + ' song')
-    const video = search.videos?.[0]
-    if (!video) throw new Error('No YouTube match found')
-
-    await m.reply(`*Found on YouTube:* ${video.title}\nDownloading audio...`)
-
-    const mediaData = await downloadYouTubeAudio(video.videoId)
-
-    save('spotify_' + Date.now() + '.mp3', Buffer.from(mediaData))
-
-    await sock.sendMessage(m.chat, {
-      audio: Buffer.from(mediaData),
-      mimetype: 'audio/mpeg',
-      ptt: false,
-      contextInfo: {
-        externalAdReply: {
-          title: title,
-          body: artist || 'Spotify',
-          mediaType: 2,
-          thumbnailUrl: thumb
-        }
-      }
-    }, { quoted: m })
+    const meta = await getTrackMeta(trackId)
+    await playTrack(sock, m, trackId, meta.title, meta.artist, meta.thumb)
 
   } catch (e) {
     m.reply('Error: ' + e.message)
