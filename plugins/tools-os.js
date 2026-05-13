@@ -40,17 +40,17 @@ export default async ({ sock, m }) => {
     const hostname = os.hostname()
 
     const text =
-      'System Information\n' +
-      'Runtime: ' + sysUptime + '\n' +
-      'OS: ' + os.type() + ' ' + os.release() + '\n' +
-      'Platform: ' + os.platform() + ' ' + os.arch() + '\n' +
-      'Hostname: ' + hostname + '\n' +
-      'CPU: ' + cpuInfo + '\n' +
-      'Load: ' + loadAvg + '\n' +
-      'RAM: ' + usedMem.toFixed(1) + 'GB / ' + totalMem.toFixed(1) + 'GB (' + freeMem.toFixed(1) + 'GB free)\n' +
-      'Disk (/): ' + diskInfo + '\n' +
-      'Node: ' + process.version + '\n' +
-      'Bot Uptime: ' + botUptime
+      '*System Information*\n' +
+      '*Runtime:* ' + sysUptime + '\n' +
+      '*OS:* ' + os.type() + ' ' + os.release() + '\n' +
+      '*Platform:* ' + os.platform() + ' ' + os.arch() + '\n' +
+      '*Hostname:* ' + hostname + '\n' +
+      '*CPU:* ' + cpuInfo + '\n' +
+      '*Load:* ' + loadAvg + '\n' +
+      '*RAM:* ' + usedMem.toFixed(1) + 'GB / ' + totalMem.toFixed(1) + 'GB (' + freeMem.toFixed(1) + 'GB free)\n' +
+      '*Disk (/):* ' + diskInfo + '\n' +
+      '*Node:* ' + process.version + '\n' +
+      '*Bot Uptime:* ' + botUptime
 
     await m.reply(text)
   } catch (e) {

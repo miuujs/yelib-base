@@ -1,4 +1,5 @@
 import { execSync } from 'child_process'
+import * as bail from 'baileys'
 
 export default async ({ sock, m, args, cmd, isOwner }) => {
   if (!isOwner) return m.reply('Owner only')
@@ -18,9 +19,9 @@ export default async ({ sock, m, args, cmd, isOwner }) => {
     try {
       let result
       try {
-        result = (0, eval)('(' + code + ')')
+        result = eval('(' + code + ')')
       } catch {
-        result = (0, eval)(code)
+        result = eval(code)
       }
       if (result instanceof Promise) result = await result
       if (typeof result !== 'string') result = JSON.stringify(result, null, 2)
