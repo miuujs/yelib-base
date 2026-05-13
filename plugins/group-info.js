@@ -4,7 +4,7 @@ export default async ({ sock, m }) => {
   const meta = await sock.groupMetadata(m.chat)
   const admins = meta.participants.filter(p => p.admin).map(p => '  • @' + p.id.split('@')[0])
   const members = meta.participants.length
-  const desc = meta.desc ? 'No' : 'Yes'
+  const desc = meta.desc ? 'Yes' : 'No'
 
   const text = '*Group Info*\n' +
     'Name: ' + meta.subject + '\n' +

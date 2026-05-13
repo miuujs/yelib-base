@@ -32,8 +32,10 @@ async function getCdn() {
 
 export default async ({ sock, m, args }) => {
   const url = args[0]
-  const type = args[1] || 'video'
+  let type = args[1] || 'video'
   if (!url) return m.reply('Usage: .yt <url> [video|audio]')
+
+  if (/music\.youtube\.com/i.test(url)) type = 'audio'
 
   try {
     const id = extractId(url)
@@ -58,7 +60,19 @@ export default async ({ sock, m, args }) => {
       key: dec.key
     })
 
-    const dlUrl = dl.data?.downloadUrl
+    let dlUrl = dl.data?.downloadUrl
+
+    if (!dlUrl && type !== 'audio') {
+      const { data: dl2 } = await api.post(`https://${cdn}/download`, {
+        id,
+        downloadType: 'audio',
+        quality: '128',
+        key: dec.key
+      })
+      dlUrl = dl2.data?.downloadUrl
+      if (dlUrl) type = 'audio'
+    }
+
     if (!dlUrl) throw new Error('No download URL received')
 
     const { data: mediaData } = await axios.get(dlUrl, {

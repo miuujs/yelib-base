@@ -65,7 +65,7 @@ global.pendingStatus = new Map()
 
 async function start() {
   console.clear()
-  const sesiPath = join(__dirname, pair.sesi)
+  const sesiPath = join(__dirname, global.pair.sesi)
   const credsFile = join(sesiPath, 'creds.json')
   if (existsSync(sesiPath)) {
     if (!existsSync(credsFile)) {
@@ -79,7 +79,7 @@ async function start() {
     }
   }
 
-  const { state, saveCreds } = await bail.useMultiFileAuthState(pair.sesi)
+  const { state, saveCreds } = await bail.useMultiFileAuthState(global.pair.sesi)
 
   global.sock = await sockConfig({
     logger: pino({ level: 'silent' }),
@@ -93,8 +93,8 @@ async function start() {
   })
 
   if (!sock.authState.creds.registered) {
-    if (pair.isPair) {
-      const phone = pair.no.replace(/[^0-9]/g, '')
+    if (global.pair.isPair) {
+      const phone = global.pair.no.replace(/[^0-9]/g, '')
       await bail.delay(3000)
       let code = await sock.requestPairingCode(phone, 'AAAAAAAA')
       code = code?.match(/.{1,4}/g)?.join('-') || code
@@ -110,7 +110,7 @@ async function start() {
       for (const msg of chatUpdate.messages) {
         if (!msg.message) continue
         global.m = await smsg(sock, msg)
-        if (set.self && ![m.owner, sock.decodeJid(sock.user.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) continue
+        if (global.set.self && ![m.owner, sock.decodeJid(sock.user.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) continue
         await routeCommand(sock, m)
         const pend = global.pendingStatus?.get(m.sender)
         if (pend && Date.now() - pend.timestamp < 120000 && m.body?.includes('@g.us') && !m.isGroup) {
@@ -141,7 +141,7 @@ async function start() {
       } else {
         if (existsSync(sesiPath)) {
           rmSync(sesiPath, { recursive: true, force: true })
-          logger.info('Session deleted: ' + pair.sesi)
+          logger.info('Session deleted: ' + global.pair.sesi)
         }
         logger.info('Restarting for re-pair...')
         setTimeout(start, 3000)
@@ -156,7 +156,7 @@ async function start() {
       logger.info('Connecting...')
     }
     if (update.qr) {
-      if (!pair.isPair) {
+      if (!global.pair.isPair) {
         console.log('\n' + await QR.toString(update.qr, { type: 'terminal', small: true }))
         logger.info('Scan the QR code above with WhatsApp')
       }
@@ -178,7 +178,7 @@ async function routeCommand(sock, m) {
   try {
     const body = m.body || ''
     if (!body) return
-    const prefixes = set.prefix || ['.']
+    const prefixes = global.set.prefix || ['.']
     const matchedPrefix = prefixes.find(p => body.startsWith(p))
     let cmd = ''
     let args = []
@@ -187,7 +187,7 @@ async function routeCommand(sock, m) {
       const parts = sliced.split(/ +/)
       cmd = parts[0]?.toLowerCase() || ''
       args = parts.slice(1)
-    } else if (set.noprefix) {
+    } else if (global.set.noprefix) {
       const parts = body.trim().split(/ +/)
       const first = parts[0]?.toLowerCase() || ''
       if (commandMap[first]) {
@@ -198,7 +198,7 @@ async function routeCommand(sock, m) {
     if (!cmd) return
     const handler = commandMap[cmd]
     if (!handler) return
-    const isOwner = owner.numbers.some(n => bail.areJidsSameUser(n + '@s.whatsapp.net', m.sender))
+    const isOwner = global.owner.numbers.some(n => bail.areJidsSameUser(n + '@s.whatsapp.net', m.sender))
     const isGroup = m.isGroup
     await handler({ sock, m, cmd, args, prefix: matchedPrefix || '', body, isOwner, isGroup })
   } catch (e) {

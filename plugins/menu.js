@@ -104,7 +104,7 @@ ${time}`
         },
         {
           name: 'cta_url',
-          buttonParamsJson: JSON.stringify({ display_text: 'Owner', url: 'https://wa.me/' + owner.numbers[0] })
+          buttonParamsJson: JSON.stringify({ display_text: 'Owner', url: 'https://wa.me/' + global.owner.numbers[0] })
         }
       ]
     }
