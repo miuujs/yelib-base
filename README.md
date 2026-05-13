@@ -33,7 +33,6 @@
 git clone https://github.com/miuujs/yelib-base
 cd yelib-base
 npm install
-cp .env.example .env
 ```
 
 > [!NOTE]
@@ -50,13 +49,6 @@ cp .env.example .env
 > # Arch Linux
 > pacman -S ffmpeg
 > ```
-
-Edit `.env` and set your phone number:
-
-```env
-PAIRNO=6281234567890
-```
-
 ---
 
 ## Usage
