@@ -48,6 +48,7 @@ export default async ({ sock, m, isOwner }) => {
         }
       }
     })
+    m.reply('Done')
   } catch (e) {
     console.error('upch error:', e)
     m.reply('Error: ' + e.message)
