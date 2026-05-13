@@ -10,7 +10,8 @@ export default async ({ sock, m }) => {
           rows: [
             { items: ['.get', 'Fetch & inspect web page'] },
             { items: ['.ss / .screenshot', 'Screenshot + frame (mac/iphone/etc)'] },
-            { items: ['.speedtest', 'Test internet speed'] }
+            { items: ['.speedtest', 'Test internet speed'] },
+            { items: ['.base64 <enc/dec>', 'Base64 encode/decode'] }
           ]
         }
       },
