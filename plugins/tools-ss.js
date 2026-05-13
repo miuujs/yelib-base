@@ -65,7 +65,22 @@ export default async ({ sock, m, args }) => {
   const url = parts[0]
   const mode = (parts[1] || 'desktop').toLowerCase()
 
-  if (!url) return m.reply('Usage: .ss <url> [desktop|tablet|mobile|mac|iphone|android|ipad|windows] [width]x[height]')
+  if (!url || url === 'list') {
+    if (url === 'list') {
+      const text = '*Screenshot Templates*\n\n' +
+        '• desktop — Desktop browser\n' +
+        '• tablet — iPad view\n' +
+        '• mobile — iPhone view\n' +
+        '• mac — MacBook frame\n' +
+        '• iphone — iPhone frame\n' +
+        '• android — Android frame\n' +
+        '• ipad — iPad frame\n' +
+        '• windows — Windows frame\n\n' +
+        'Custom: `.ss <url> <width>x<height>`'
+      return sock.sendMessage(m.chat, { text }, { quoted: m })
+    }
+    return m.reply('Usage: .ss <url> [template] [width]x[height]')
+  }
 
   const fullUrl = /^https?:\/\//i.test(url) ? url : 'https://' + url
 
