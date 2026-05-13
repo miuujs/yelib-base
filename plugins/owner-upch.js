@@ -29,6 +29,7 @@ export default async ({ sock, m, isOwner }) => {
     unlinkSync(output)
 
     await sock.sendMessage(ch, { audio: opus, mimetype: 'audio/ogg; codecs=opus', ptt: true })
+    m.reply('Done')
   } catch (e) {
     console.error('upch error:', e)
     m.reply('Error: ' + e.message)
