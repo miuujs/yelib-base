@@ -21,7 +21,7 @@ export function clockString(ms) {
 }
 
 export async function adReply(sock, m, text, chat) {
-  const target = chat || m.chat
+  const target = typeof chat === 'string' ? chat : m.chat
   try {
     const bodyText = 'Runtime: ' + clockString(Date.now() - global.start)
 
