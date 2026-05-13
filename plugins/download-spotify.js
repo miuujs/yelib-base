@@ -14,6 +14,7 @@ const api = axios.create({
 })
 
 function decrypt(enc) {
+  if (typeof enc !== 'string') throw new Error('Invalid response from video info')
   const sr = Buffer.from(enc, 'base64')
   const key = Buffer.from(ky, 'hex')
   const iv = sr.slice(0, 16)
@@ -57,7 +58,7 @@ async function downloadYouTubeAudio(videoId) {
     }
   })
 
-  return { buffer: mediaData, title: dec.title }
+  return { buffer: Buffer.from(mediaData), title: dec.title }
 }
 
 function extractTrackId(text) {
@@ -110,10 +111,10 @@ async function playTrack(sock, m, trackId, title, artist, thumb) {
 
   const { buffer } = await downloadYouTubeAudio(video.videoId)
 
-  save('spotify_' + Date.now() + '.mp3', Buffer.from(buffer))
+  try { save('spotify_' + Date.now() + '.mp3', buffer) } catch {}
 
   await sock.sendMessage(m.chat, {
-    audio: Buffer.from(buffer),
+    audio: buffer,
     mimetype: 'audio/mpeg',
     ptt: false,
     contextInfo: {

@@ -143,10 +143,13 @@ export default async ({ sock, m, args, cmd }) => {
   const url = args[0]
   if (!url) return m.reply('Usage: .' + cmd + ' <url>')
 
+  if (!/tiktok\.com/i.test(url)) return m.reply('Invalid TikTok URL')
+
   await m.reply('Downloading TikTok...')
 
   try {
-    const data = (await v1(url)) || (await v2(url)) || (await v3(url))
+    const finalUrl = /https?:\/\/(vt|vm)\.tiktok\.com\//i.test(url) ? await expandUrl(url).catch(() => url) : url
+    const data = (await v1(finalUrl)) || (await v2(finalUrl)) || (await v3(finalUrl))
     if (!data) throw new Error('All download methods failed')
 
     const target = data.videos.find(v => v.type === 'nowatermark_hd' || v.type === 'nowatermark') || data.videos[0]
