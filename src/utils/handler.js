@@ -42,11 +42,12 @@ export async function sockConfig(opts) {
 
   sock.getJid = (jid) => {
     if (!jid) return jid
-    if (!jid.endsWith('@lid')) return jid
-    for (const chat of Object.values(sock.chats)) {
-      if (!chat?.participants) continue
-      const user = chat.participants.find(p => p.lid === jid || p.id === jid)
-      if (user) return user.phoneNumber || user.id
+    if (jid.endsWith('@lid')) {
+      for (const chat of Object.values(sock.chats)) {
+        if (!chat?.participants) continue
+        const user = chat.participants.find(p => p.lid === jid || p.id === jid)
+        if (user) return user.phoneNumber || user.id
+      }
     }
     return jid
   }
@@ -120,17 +121,18 @@ export async function smsg(sock, m) {
     m.isGroup = m.chat?.endsWith('@g.us')
     m.sender = m.fromMe
       ? sock.decodeJid(sock.user.id)
-      : sock.getJid(bail.jidNormalizedUser(
-          m.key.participantAlt || m.key.participantPn || m.key.participant || m.chat
-        ))
+      : (() => {
+          const candidates = [m.key.participantPn, m.key.participantAlt, m.key.participant, m.chat].filter(Boolean)
+          const pn = candidates.find(j => bail.isPnUser(j))
+          return sock.getJid(bail.jidNormalizedUser(pn || candidates[0]))
+        })()
     m.pushName = m.pushName || m.verifiedName || ''
 
     if (m.isGroup) {
       const cht = sock.chats[m.key.remoteJid] || {}
-      const participant = (cht?.participants || []).find(p => {
-        const pid = p.id || p.lid || ''
-        return pid.includes(m.sender?.split('@')[0]) || pid === m.sender
-      })
+      const participant = (cht?.participants || []).find(p =>
+        bail.areJidsSameUser(p.id || p.lid, m.sender) || p.phoneNumber === m.sender
+      )
       m.isAdmin = !!(participant?.admin)
       m.isSuperAdmin = participant?.admin === 'superadmin'
     } else {
