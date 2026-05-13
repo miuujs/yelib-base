@@ -7,7 +7,7 @@ import { readFileSync, unlinkSync } from 'fs'
 export default async ({ sock, m, args }) => {
   const url = args.join(' ') || (m.quoted?.text || '')
   if (!url) return m.reply('Usage: .ss <url>')
-  if (!/^https?:\/\//i.test(url)) return m.reply('URL must start with http:// or https://')
+  const fullUrl = /^https?:\/\//i.test(url) ? url : 'https://' + url
 
   try {
     await m.reply('Taking screenshot...')
@@ -20,7 +20,7 @@ export default async ({ sock, m, args }) => {
         '--screenshot=' + output,
         '--window-size=1280,720',
         '--hide-scrollbars',
-        url
+        fullUrl
       ], { timeout: 30000 }, (err) => {
         if (err) reject(new Error('Screenshot failed'))
         else resolve()
@@ -30,7 +30,7 @@ export default async ({ sock, m, args }) => {
     const img = readFileSync(output)
     unlinkSync(output)
 
-    await sock.sendMessage(m.chat, { image: img, caption: url }, { quoted: m })
+    await sock.sendMessage(m.chat, { image: img, caption: fullUrl }, { quoted: m })
   } catch (e) {
     m.reply('Error: ' + e.message)
   }
