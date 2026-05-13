@@ -9,7 +9,8 @@ export default async ({ sock, m }) => {
           title: 'Web Tools',
           rows: [
             { items: ['.get', 'Fetch & inspect web page'] },
-            { items: ['.ss / .screenshot', 'Screenshot + frame (mac/iphone/etc)'] }
+            { items: ['.ss / .screenshot', 'Screenshot + frame (mac/iphone/etc)'] },
+            { items: ['.speedtest', 'Test internet speed'] }
           ]
         }
       },
