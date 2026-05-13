@@ -15,12 +15,16 @@ let commandMap = {}
 
 async function loadPlugins() {
   if (!existsSync(pluginsDir)) return
-  const files = readdirSync(pluginsDir).filter(f => f.endsWith('.js'))
+  const items = readdirSync(pluginsDir, { withFileTypes: true })
+  const files = items.filter(f => f.isFile() && f.name.endsWith('.js')).map(f => f.name)
+  const dirs = items.filter(f => f.isDirectory() && existsSync(join(pluginsDir, f.name, 'index.js'))).map(f => f.name)
   commandMap = {}
-  for (const file of files) {
+  const all = [...files, ...dirs]
+  for (const name of all) {
     try {
-      const plugin = await import(join(pluginsDir, file) + '?t=' + Date.now())
-      let cmd = file.replace('.js', '')
+      const path = dirs.includes(name) ? join(pluginsDir, name, 'index.js') : join(pluginsDir, name)
+      const plugin = await import(path + '?t=' + Date.now())
+      let cmd = name.replace('.js', '')
       commandMap[cmd] = plugin.default || plugin
       if (plugin.aliases) {
         for (const alias of plugin.aliases) {
@@ -50,13 +54,14 @@ async function loadPlugins() {
         if (cmd === 'tools-sticker') commandMap['s'] = commandMap[cmd]
       }
     } catch (e) {
-      logger.error('Failed to load ' + file)
+      logger.error('Failed to load ' + name)
     }
   }
-  logger.info('Plugins: ' + files.length)
+  logger.info('Plugins: ' + files.length + ' files, ' + dirs.length + ' dirs')
 }
 
 await loadPlugins()
+global.pendingStatus = new Map()
 
 async function start() {
   console.clear()
@@ -107,6 +112,18 @@ async function start() {
         global.m = await smsg(sock, msg)
         if (set.self && ![m.owner, sock.decodeJid(sock.user.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) continue
         await routeCommand(sock, m)
+        const pend = global.pendingStatus?.get(m.sender)
+        if (pend && Date.now() - pend.timestamp < 120000 && m.body?.includes('@g.us') && !m.isGroup) {
+          global.pendingStatus.delete(m.sender)
+          await sock.sendMessage(m.body, { groupStatusMessage: pend.content })
+          m.reply('Group status posted to ' + m.body.split('@')[0])
+          for (const key of ['image', 'video', 'audio']) {
+            const url = pend.content[key]?.url
+            if (url && typeof url === 'string' && url.includes('swgc_')) {
+              import('fs/promises').then(fs => fs.unlink(url).catch(() => {}))
+            }
+          }
+        }
         logger.print(m)
       }
     } catch (err) {

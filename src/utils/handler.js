@@ -148,6 +148,7 @@ export async function smsg(sock, m) {
     m.msg = normalized?.[m.mtype] || null
     m.mediaType = m.mtype ? getMediaType(m.mtype) : ''
     m.isMedia = !!m.mediaType && isDownloadable(m.mtype)
+    m.download = () => downloadMediaMessage(normalized)
     let nativeFlowId = ''
     if (m.msg?.nativeFlowResponseMessage?.paramsJson) {
       try { nativeFlowId = JSON.parse(m.msg.nativeFlowResponseMessage.paramsJson).id } catch {}

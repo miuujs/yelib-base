@@ -13,7 +13,7 @@ export default async ({ sock, m, args, cmd, isOwner }) => {
       m.reply('Error:\n```' + e.message + '```')
     }
   } else if (cmd === 'eval' || cmd === 'ev') {
-    const code = args.join(' ') || (m.quoted?.text || '')
+    const code = args.join(' ')
     if (!code) return m.reply(JSON.stringify(m, null, 2).slice(0, 4000))
     try {
       let result
