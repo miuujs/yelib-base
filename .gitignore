@@ -5,3 +5,4 @@ database.json
 .env
 package-lock.json
 tmp/
+__pycache__/
