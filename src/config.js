@@ -4,25 +4,25 @@ import chalk from 'chalk'
 const parseList = (str) => str.split(',').map(s => s.trim()).filter(Boolean)
 
 global.owner = {
-  numbers: parseList(process.env.OWNERS || process.env.PAIRNO || '6283891882373'),
-  name: process.env.OWNER || 'miuujs'
+  numbers: parseList('6283891882373'),
+  name: 'miuujs'
 }
 
 global.set = {
-  prefix: parseList(process.env.PREFIX || '.,!,/,#,$,-,+,;,~,&,%'),
-  self: process.env.MODE !== 'public',
-  noprefix: process.env.NOPREFIX !== 'false'
+  prefix: parseList('.,!,/,#,$,-,+,;,~,&,%'),
+  self: true,
+  noprefix: true
 }
 
 global.pair = {
-  no: process.env.PAIRNO || '6283891882373',
+  no: '6283891882373',
   isPair: true,
-  sesi: process.env.SESSION || 'session'
+  sesi: 'session'
 }
 
 global.sticker = {
-  pack: process.env.PACK || 'yelib-base',
-  author: process.env.AUTHOR || 'yelib'
+  pack: 'yelib-base',
+  author: 'yelib'
 }
 
 global.bail = bail
