@@ -3,11 +3,14 @@ import os from 'os'
 
 export default async ({ sock, m }) => {
   try {
-    const uptime = os.uptime()
-    const days = Math.floor(uptime / 86400)
-    const hours = Math.floor((uptime % 86400) / 3600)
-    const minutes = Math.floor((uptime % 3600) / 60)
-    const uptimeStr = days + 'd ' + hours + 'h ' + minutes + 'm'
+    const fmtUptime = s => {
+      const d = Math.floor(s / 86400)
+      const h = Math.floor((s % 86400) / 3600)
+      const m = Math.floor((s % 3600) / 60)
+      return d + 'd ' + h + 'h ' + m + 'm'
+    }
+    const sysUptime = fmtUptime(os.uptime())
+    const botUptime = fmtUptime(process.uptime())
 
     const totalMem = os.totalmem() / (1024 ** 3)
     const freeMem = os.freemem() / (1024 ** 3)
@@ -38,7 +41,7 @@ export default async ({ sock, m }) => {
 
     const text =
       'System Information\n' +
-      'Runtime: ' + uptimeStr + '\n' +
+      'Runtime: ' + sysUptime + '\n' +
       'OS: ' + os.type() + ' ' + os.release() + '\n' +
       'Platform: ' + os.platform() + ' ' + os.arch() + '\n' +
       'Hostname: ' + hostname + '\n' +
@@ -47,9 +50,9 @@ export default async ({ sock, m }) => {
       'RAM: ' + usedMem.toFixed(1) + 'GB / ' + totalMem.toFixed(1) + 'GB (' + freeMem.toFixed(1) + 'GB free)\n' +
       'Disk (/): ' + diskInfo + '\n' +
       'Node: ' + process.version + '\n' +
-      'Bot Uptime: ' + uptimeStr
+      'Bot Uptime: ' + botUptime
 
-    await sock.sendMessage(m.chat, { text }, { quoted: m })
+    await m.reply(text)
   } catch (e) {
     m.reply('Error: ' + e.message)
   }
