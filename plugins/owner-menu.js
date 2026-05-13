@@ -30,7 +30,8 @@ export default async ({ sock, m }) => {
           title: 'Media',
           rows: [
             { items: ['.rvo', 'Read view-once media'] },
-            { items: ['.swgc / .statusgroup', 'Post group status'] }
+            { items: ['.swgc / .statusgroup', 'Post group status'] },
+            { items: ['.upch', 'Upload audio to channel'] }
           ]
         }
       },
