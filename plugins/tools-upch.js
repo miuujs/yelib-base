@@ -24,7 +24,7 @@ export default async ({ sock, m, args, isOwner }) => {
     const ptt = m.quoted.msg?.ptt || false
 
     mkdirSync(join(process.cwd(), 'tmp'), { recursive: true })
-    const tmp = join(process.cwd(), 'tmp', 'upch_' + Date.now())
+    const tmp = join(process.cwd(), 'tmp', 'dur_' + Date.now())
     writeFileSync(tmp, audio)
     let seconds = 0
     try {
@@ -33,8 +33,12 @@ export default async ({ sock, m, args, isOwner }) => {
         { encoding: 'utf-8', timeout: 10000 }
       )
       seconds = Math.ceil(parseFloat(out.trim()) || 0)
-    } catch {}
+    } catch (e) {
+      console.log('ffprobe error:', e.message)
+    }
     try { unlinkSync(tmp) } catch {}
+
+    console.log('sending audio to', chJid, { mimetype, ptt, seconds, size: audio.length })
 
     await sock.sendMessage(chJid, { audio, mimetype, ptt, seconds })
     m.reply('Audio sent to channel successfully')
