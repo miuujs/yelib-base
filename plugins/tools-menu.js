@@ -8,7 +8,8 @@ export default async ({ sock, m }) => {
         tableMetadata: {
           title: 'Web Tools',
           rows: [
-            { items: ['.get', 'Fetch & inspect web page'] }
+            { items: ['.get', 'Fetch & inspect web page'] },
+            { items: ['.ss / .screenshot', 'Screenshot website'] }
           ]
         }
       },
