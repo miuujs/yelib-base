@@ -147,6 +147,7 @@ export default async ({ sock, m, args }) => {
         const meta = await getTrackMeta(track.id)
         await playTrack(sock, m, track.id, meta.title, meta.artist, meta.thumb)
       } catch (e) {
+        console.error('spotify num error:', e)
         m.reply('Error: ' + e.message)
       }
       return
@@ -175,6 +176,7 @@ export default async ({ sock, m, args }) => {
     await playTrack(sock, m, trackId, meta.title, meta.artist, meta.thumb)
 
   } catch (e) {
+    console.error('spotify error:', e)
     m.reply('Error: ' + e.message)
   }
 }

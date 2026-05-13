@@ -125,6 +125,7 @@ export default async ({ sock, m, args }) => {
     unlinkSync(tempOutput)
 
   } catch (e) {
+    console.error('play error:', e)
     m.reply('Error: ' + e.message)
   }
 }

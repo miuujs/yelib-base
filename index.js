@@ -207,6 +207,7 @@ async function routeCommand(sock, m) {
     await handler({ sock, m, cmd, args, prefix: matchedPrefix || '', body, isOwner, isGroup })
   } catch (e) {
     logger.error('Route error: ' + e.message)
+    console.error(e)
   }
 }
 
