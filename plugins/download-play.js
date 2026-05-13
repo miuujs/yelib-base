@@ -85,7 +85,9 @@ export default async ({ sock, m, args }) => {
 
     await m.reply(`*Found:* ${title}\n*Downloading...*`)
 
+    global._playStep = 1
     const info = await getAudioUrl(id)
+    global._playStep = 2
 
     const audioRes = await axios.get(info.url, {
       responseType: 'arraybuffer',
@@ -94,16 +96,24 @@ export default async ({ sock, m, args }) => {
         Referer: 'https://yt.savetube.me/'
       }
     })
+    global._playStep = 3
     const thumbRes = await axios.get(info.thumb, { responseType: 'arraybuffer' })
+    global._playStep = 4
 
     const tempInput = join(tmpdir(), `in_${crypto.randomBytes(4).toString('hex')}.mp3`)
+    global._playStep = 5
     writeFileSync(tempInput, Buffer.from(audioRes.data))
+    global._playStep = 6
 
     const tempOutput = join(tmpdir(), `out_${crypto.randomBytes(4).toString('hex')}.opus`)
+    global._playStep = 7
     execSync(`ffmpeg -y -i "${tempInput}" -c:a libopus -b:a 128k -vbr on -compression_level 10 "${tempOutput}"`, { timeout: 60000 })
+    global._playStep = 8
 
     const opusBuffer = readFileSync(tempOutput)
+    global._playStep = 9
     save('play_' + Date.now() + '.opus', opusBuffer)
+    global._playStep = 10
 
     await sock.sendMessage(m.chat, {
       audio: opusBuffer,
@@ -126,6 +136,6 @@ export default async ({ sock, m, args }) => {
 
   } catch (e) {
     console.error('play error:', e)
-    m.reply('Error: ' + e.message)
+    m.reply('Error [step ' + (global._playStep || '?') + ']: ' + e.message)
   }
 }
