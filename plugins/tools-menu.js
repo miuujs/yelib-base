@@ -17,7 +17,17 @@ export default async ({ sock, m }) => {
         tableMetadata: {
           title: 'Media Tools',
           rows: [
-            { items: ['.sticker / .s', 'Convert image to sticker'] }
+            { items: ['.sticker / .s', 'Convert image/video to sticker'] },
+            { items: ['.toimg / .toimage', 'Convert sticker to image'] }
+          ]
+        }
+      },
+      {
+        messageType: 4,
+        tableMetadata: {
+          title: 'Story',
+          rows: [
+            { items: ['.getsw / .gsw', 'Retrieve replied status/story'] }
           ]
         }
       },
