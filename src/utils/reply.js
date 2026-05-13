@@ -6,23 +6,24 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const menuPath = join(__dirname, '../../media/menu.jpg')
 
-let menuBuffer = null
+export let menuBuffer = null
 try {
   if (existsSync(menuPath)) {
     menuBuffer = readFileSync(menuPath)
   }
 } catch {}
 
-function clockString(ms) {
+export function clockString(ms) {
   const h = Math.floor(ms / 3600000)
   const m = Math.floor((ms % 3600000) / 60000)
   const s = Math.floor((ms % 60000) / 1000)
   return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':')
 }
 
-export async function adReply(sock, m, text) {
+export async function adReply(sock, m, text, chat) {
   try {
     const bodyText = 'Runtime: ' + clockString(Date.now() - global.start)
+    const target = chat || m.chat
 
     const msg = { text }
     msg.contextInfo = {
@@ -42,8 +43,8 @@ export async function adReply(sock, m, text) {
       }
     }
 
-    return await sock.sendMessage(m.chat, msg, { quoted: m })
+    return await sock.sendMessage(target, msg, { quoted: m })
   } catch (e) {
-    return sock.sendMessage(m.chat, { text }, { quoted: m })
+    return sock.sendMessage(target, { text }, { quoted: m })
   }
 }

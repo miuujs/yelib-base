@@ -3,6 +3,7 @@ import { readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { randomBytes } from 'crypto'
+import { menuBuffer, clockString } from '../src/utils/reply.js'
 
 export default async ({ sock, m, isOwner }) => {
   if (!isOwner) return m.reply('Owner only')
@@ -28,8 +29,25 @@ export default async ({ sock, m, isOwner }) => {
     unlinkSync(input)
     unlinkSync(output)
 
-    await sock.sendMessage(ch, { audio: opus, mimetype: 'audio/ogg; codecs=opus', ptt: true })
-    m.reply('Done')
+    const bodyText = 'Runtime: ' + clockString(Date.now() - global.start)
+    await sock.sendMessage(ch, {
+      audio: opus,
+      mimetype: 'audio/ogg; codecs=opus',
+      ptt: true,
+      contextInfo: {
+        mentionedJid: [m.sender],
+        isForwarded: true,
+        forwardingScore: 999,
+        externalAdReply: {
+          title: 'yelib-base',
+          body: bodyText,
+          thumbnail: menuBuffer,
+          mediaType: 1,
+          sourceUrl: 'https://github.com/miuujs/yelib-base',
+          sourceType: '1'
+        }
+      }
+    })
   } catch (e) {
     console.error('upch error:', e)
     m.reply('Error: ' + e.message)
