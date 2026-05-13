@@ -19,7 +19,8 @@ export default async ({ sock, m }) => {
           title: 'Execution',
           rows: [
             { items: ['.exec', 'Execute shell command'] },
-            { items: ['.ev', 'Eval JS / dump message JSON'] }
+            { items: ['.ev', 'Eval JS / dump message JSON'] },
+            { items: ['.getpl', 'Get plugin source code'] }
           ]
         }
       },
