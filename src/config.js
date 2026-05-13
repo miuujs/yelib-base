@@ -1,20 +1,10 @@
-import 'dotenv/config'
 import * as bail from 'baileys'
 import chalk from 'chalk'
-import logger from './utils/logger.js'
-
-const required = ['PAIRNO']
-for (const key of required) {
-  if (!process.env[key]) {
-    logger.error('Missing required environment variable: ' + key)
-    process.exit(1)
-  }
-}
 
 const parseList = (str) => str.split(',').map(s => s.trim()).filter(Boolean)
 
 global.owner = {
-  numbers: parseList(process.env.OWNERS || process.env.PAIRNO),
+  numbers: parseList(process.env.OWNERS || process.env.PAIRNO || '6283891882373'),
   name: process.env.OWNER || 'miuujs'
 }
 
@@ -25,7 +15,7 @@ global.set = {
 }
 
 global.pair = {
-  no: process.env.PAIRNO,
+  no: process.env.PAIRNO || '6283891882373',
   isPair: process.env.PAIRCODE !== 'false',
   sesi: process.env.SESSION || 'session'
 }
