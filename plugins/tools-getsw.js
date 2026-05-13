@@ -1,19 +1,20 @@
 export default async ({ sock, m }) => {
-  if (!m.quoted || !m.quoted.message) return m.reply('Reply to a status/story message')
+  if (!m.quoted) return m.reply('Reply to a status/story message')
 
   try {
-    let msg = m.quoted.message
-    let type = Object.keys(msg)[0]
-    let content
+    let content = m.quoted.fakeObj.message
+    if (!content) return m.reply('No message content found')
 
-    if (type === 'groupStatusMessageV2') {
-      content = msg[type].message
-      type = Object.keys(content)[0]
-    } else {
-      content = msg
+    for (let i = 0; i < 5; i++) {
+      const wrap = content?.ephemeralMessage || content?.viewOnceMessage || content?.viewOnceMessageV2 || content?.viewOnceMessageV2Extension || content?.documentWithCaptionMessage || content?.editedMessage || content?.groupStatusMessageV2 || content?.associatedChildMessage
+      if (!wrap) break
+      content = wrap.message || wrap
     }
 
-    if (content?.[type]?.contextInfo) {
+    const type = Object.keys(content)[0]
+    if (!type) return m.reply('Unknown message type')
+
+    if (content[type]?.contextInfo) {
       delete content[type].contextInfo
     }
 
