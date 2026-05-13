@@ -21,8 +21,8 @@ export default async ({ sock, m }) => {
 
     const ext = mime.split('/')[1] || 'png'
     const sticker = await writeExif({ mimetype: mime, data: buffer, ext }, {
-      packName: '',
-      packPublish: '',
+      packName: global.sticker.pack,
+      packPublish: global.sticker.author,
       emojis: ['😋', '😎', '🤣', '😂', '😁'],
     })
 
