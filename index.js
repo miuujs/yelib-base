@@ -167,7 +167,10 @@ async function start() {
 
   setInterval(() => {
     const mem = process.memoryUsage().rss / 1024 / 1024
-    if (mem > 250) {
+    for (const [k, v] of global.pendingStatus || []) {
+      if (Date.now() - v.timestamp > 180000) global.pendingStatus.delete(k)
+    }
+    if (mem > 450) {
       logger.warn('Memory ' + mem.toFixed(0) + 'MB, restarting...')
       process.exit(1)
     }

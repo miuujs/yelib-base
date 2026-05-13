@@ -127,19 +127,21 @@ async function playTrack(sock, m, trackId, title, artist, thumb) {
   }, { quoted: m })
 }
 
+const playlistCache = new Map()
+
 export default async ({ sock, m, args }) => {
   const input = args.join(' ') || (m.quoted?.text || '')
   const trackId = extractTrackId(input)
   const playlistId = extractPlaylistId(input)
-  const storeKey = 'spotify_playlist_' + m.chat
+  const cacheKey = 'spotify_' + m.chat
 
   if (!trackId && !playlistId) {
     if (/^\d+$/.test(input.trim())) {
-      const stored = global[storeKey]
-      if (!stored) return m.reply('No playlist loaded. Send a playlist URL first.')
+      const cached = playlistCache.get(cacheKey)
+      if (!cached || Date.now() - cached.time > 300000) return m.reply('Playlist expired. Send URL again.')
       const num = parseInt(input.trim())
-      const track = stored[num - 1]
-      if (!track) return m.reply('Invalid number. Choose 1-' + stored.length)
+      const track = cached.tracks[num - 1]
+      if (!track) return m.reply('Invalid number. Choose 1-' + cached.tracks.length)
       try {
         const meta = await getTrackMeta(track.id)
         await playTrack(sock, m, track.id, meta.title, meta.artist, meta.thumb)
@@ -160,7 +162,7 @@ export default async ({ sock, m, args }) => {
       const tracks = extractPlaylistTracks(data)
       if (!tracks.length) return m.reply('No tracks found in playlist')
 
-      global[storeKey] = tracks
+      playlistCache.set(cacheKey, { tracks, time: Date.now() })
 
       const lines = tracks.slice(0, 30).map((t, i) => `${i + 1}. ${t.title}`)
       const text = '*Spotify Playlist*\n' + lines.join('\n') + '\n\n_Send_ `.spotify <number>` _to play a track_'
