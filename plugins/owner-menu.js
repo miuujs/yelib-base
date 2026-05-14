@@ -18,8 +18,8 @@ export default async ({ sock, m }) => {
         tableMetadata: {
           title: 'Execution',
           rows: [
-            { items: ['.exec', 'Execute shell command'] },
-            { items: ['.ev', 'Eval JS / dump message JSON'] },
+            { items: ['=>', 'Execute shell command'] },
+            { items: ['>', 'Eval JS / dump message JSON'] },
             { items: ['.getpl', 'Get plugin source code'] }
           ]
         }
