@@ -52,13 +52,43 @@ export async function sockConfig(opts) {
     return jid
   }
 
-  sock.ev.on('group-participants.update', async ({ id }) => {
+  sock.ev.on('group-participants.update', async ({ id, participants, action }) => {
     if (!id || id === 'status@broadcast') return
     try {
       const data = await sock.groupMetadata(id)
       setCached(id, data)
       sock.chats[id] = data
       await new Promise(r => setTimeout(r, 500))
+
+      if (!participants?.length) return
+      const { get } = await import('./database.js')
+      const settings = get(id)
+
+      if (action === 'add' && settings.welcome) {
+        const groupName = data.subject || 'Group'
+        const members = data.participants?.length || 0
+        for (const jid of participants) {
+          const name = data.participants?.find(p => bail.areJidsSameUser(p.id, jid))?.pushName || jid.split('@')[0]
+          const text = (settings.welcomeText || 'Welcome {name}!')
+            .replace(/{name}/g, name)
+            .replace(/{group}/g, groupName)
+            .replace(/{count}/g, members)
+          await sock.sendMessage(id, { text, mentions: [jid] })
+        }
+      }
+
+      if (action === 'remove' && settings.goodbye) {
+        const groupName = data.subject || 'Group'
+        const members = data.participants?.length || 0
+        for (const jid of participants) {
+          const name = jid.split('@')[0]
+          const text = (settings.goodbyeText || 'Goodbye {name}!')
+            .replace(/{name}/g, name)
+            .replace(/{group}/g, groupName)
+            .replace(/{count}/g, members)
+          await sock.sendMessage(id, { text })
+        }
+      }
     } catch {}
   })
 
