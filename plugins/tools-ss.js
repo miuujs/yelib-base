@@ -1,4 +1,4 @@
-import { execFile } from 'child_process'
+import { execFile, execFileSync } from 'child_process'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { randomBytes } from 'crypto'
@@ -111,12 +111,24 @@ export default async ({ sock, m, args }) => {
   }
 
   try {
+    const chromeBin = (() => {
+      const candidates = ['google-chrome', 'google-chrome-stable', 'chromium-browser', 'chromium']
+      for (const c of candidates) {
+        try { execFileSync('which', [c]); return c }
+        catch { }
+      }
+      return null
+    })()
+    if (!chromeBin) {
+      return m.reply('This feature requires Google Chrome or Chromium.\nInstall it with:\n• apt install chromium-browser (Debian/Ubuntu)\n• yum install chromium (CentOS/RHEL)\n• pacman -S chromium (Arch)')
+    }
+
     await m.reply(`Taking screenshot${frameType ? ' (' + label + ')' : ' (' + label + ')'}...`)
 
     const output = join(tmpdir(), `ss_${randomBytes(4).toString('hex')}.png`)
 
     await new Promise((resolve, reject) => {
-      execFile('google-chrome', [
+      execFile(chromeBin, [
         '--headless', '--no-sandbox', '--disable-gpu',
         '--screenshot=' + output,
         '--window-size=' + size,

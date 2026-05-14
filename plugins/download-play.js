@@ -1,7 +1,7 @@
 import axios from 'axios'
 import crypto from 'crypto'
 import yts from 'yt-search'
-import { execSync } from 'child_process'
+import { execSync, execFileSync } from 'child_process'
 import { readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
@@ -81,6 +81,10 @@ export default async ({ sock, m, args }) => {
       if (!found) throw new Error('No results found (videos under 15 min)')
       id = found.videoId
       title = found.title
+    }
+
+    try { execFileSync('which', ['ffmpeg']) } catch {
+      return m.reply('This feature requires ffmpeg.\nInstall it with:\n• apt install ffmpeg (Debian/Ubuntu)\n• yum install ffmpeg (CentOS/RHEL)\n• pacman -S ffmpeg (Arch)')
     }
 
     await m.reply(`*Found:* ${title}\n*Downloading...*`)

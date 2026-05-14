@@ -1,4 +1,4 @@
-import { execSync } from 'child_process'
+import { execSync, execFileSync } from 'child_process'
 import { readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
@@ -15,6 +15,10 @@ export default async ({ sock, m, isOwner }) => {
   const ch = '120363425402680588@newsletter'
 
   try {
+    try { execFileSync('which', ['ffmpeg']) } catch {
+      return m.reply('This feature requires ffmpeg.\nInstall it with:\n• apt install ffmpeg (Debian/Ubuntu)\n• yum install ffmpeg (CentOS/RHEL)\n• pacman -S ffmpeg (Arch)')
+    }
+
     const buf = await q.download()
     if (!buf) return m.reply('Download failed')
 

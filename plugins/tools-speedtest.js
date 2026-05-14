@@ -1,4 +1,4 @@
-import { execFile } from 'child_process'
+import { execFile, execFileSync } from 'child_process'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -7,6 +7,10 @@ const __dirname = dirname(__filename)
 const script = join(__dirname, '../spdtest.py')
 
 export default async ({ sock, m }) => {
+  try { execFileSync('which', ['python3']) } catch {
+    return m.reply('This feature requires Python 3.\nInstall it with:\n• apt install python3 (Debian/Ubuntu)\n• yum install python3 (CentOS/RHEL)\n• pacman -S python (Arch)')
+  }
+
   await m.reply('Running speedtest... (60s)')
 
   try {
