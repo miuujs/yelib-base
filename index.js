@@ -65,6 +65,9 @@ async function loadPlugins() {
 
 async function routeCommand(sock, m) {
   try {
+    if (typeof global.antitoxicChecker === 'function') {
+      await global.antitoxicChecker(sock, m)
+    }
     const body = m.body || ''
     if (!body) return
     const prefixes = global.set.prefix || ['.']
