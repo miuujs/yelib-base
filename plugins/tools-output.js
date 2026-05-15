@@ -9,16 +9,7 @@ export default async ({ sock, m, isOwner }) => {
     if (msgId && global.evalFiles?.has(msgId)) {
       const { readFile } = await import('fs/promises')
       const text = await readFile(global.evalFiles.get(msgId), 'utf-8')
-      if (text.length > 4000) {
-        const { writeFile } = await import('fs/promises')
-        const { join } = await import('path')
-        const { tmpdir } = await import('os')
-        const fp = join(tmpdir(), 'output_' + Date.now() + '.txt')
-        await writeFile(fp, text)
-        await sock.sendMessage(m.chat, { document: { url: fp }, mimetype: 'text/plain', fileName: 'output.txt' }, { quoted: m })
-      } else {
-        await m.reply(text)
-      }
+      await m.reply(text)
       return
     }
 
@@ -27,16 +18,7 @@ export default async ({ sock, m, isOwner }) => {
     const buf = await q.download()
     if (!buf) return m.reply('Download failed')
     const text = buf.toString('utf-8')
-    if (text.length > 4000) {
-      const { writeFile } = await import('fs/promises')
-      const { join } = await import('path')
-      const { tmpdir } = await import('os')
-      const fp = join(tmpdir(), 'output_' + Date.now() + '.txt')
-      await writeFile(fp, text)
-      await sock.sendMessage(m.chat, { document: { url: fp }, mimetype: 'text/plain', fileName: 'output.txt' }, { quoted: m })
-    } else {
-      await m.reply(text || '(empty)')
-    }
+    await m.reply(text || '(empty)')
   } catch (e) {
     await m.reply('Output error: ' + e.message).catch(() => {})
   }
