@@ -11,7 +11,18 @@ export default async ({ sock, m }) => {
             { items: ['.get', 'Fetch & inspect web page'] },
             { items: ['.ss / .screenshot', 'Screenshot + frame (mac/iphone/etc)'] },
             { items: ['.speedtest', 'Test internet speed'] },
-            { items: ['.base64 <enc/dec>', 'Base64 encode/decode'] }
+            { items: ['.benchmark', 'System benchmark'] },
+            { items: ['.base64 <enc/dec>', 'Base64 encode/decode'] },
+            { items: ['.os', 'OS info'] }
+          ]
+        }
+      },
+      {
+        messageType: 4,
+        tableMetadata: {
+          title: 'Profile',
+          rows: [
+            { items: ['.getpp / .pp', 'Get profile picture'] }
           ]
         }
       },

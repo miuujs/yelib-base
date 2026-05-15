@@ -9,7 +9,8 @@ export default async ({ sock, m }) => {
           title: 'Mode',
           rows: [
             { items: ['.self', 'Set bot to self mode'] },
-            { items: ['.public', 'Set bot to public mode'] }
+            { items: ['.public', 'Set bot to public mode'] },
+            { items: ['.anticall', 'Auto-reject incoming calls'] }
           ]
         }
       },
@@ -18,8 +19,8 @@ export default async ({ sock, m }) => {
         tableMetadata: {
           title: 'Execution',
           rows: [
-            { items: ['=>', 'Execute shell command'] },
-            { items: ['>', 'Eval JS / dump message JSON'] },
+            { items: ['$', 'Execute shell command'] },
+            { items: ['> / =>', 'Eval JavaScript'] },
             { items: ['.getpl', 'Get plugin source code'] }
           ]
         }
@@ -31,7 +32,8 @@ export default async ({ sock, m }) => {
           rows: [
             { items: ['.rvo', 'Read view-once media'] },
             { items: ['.swgc / .statusgroup', 'Post group status'] },
-            { items: ['.upch', 'Upload audio to channel'] }
+            { items: ['.upch', 'Upload audio to channel'] },
+            { items: ['.setpp / .setprofile', 'Change bot profile pic'] }
           ]
         }
       },
