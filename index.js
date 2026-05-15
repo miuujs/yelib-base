@@ -164,6 +164,9 @@ async function start() {
         if (typeof global.antitoxicChecker === 'function') {
           await global.antitoxicChecker(sock, m)
         }
+        if (typeof global.antivirtexChecker === 'function') {
+          await global.antivirtexChecker(sock, m)
+        }
         if (global.set.self && !(m.isGroup && get(m.chat).public) && ![m.owner, sock.decodeJid(sock.user.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) continue
         await routeCommand(sock, m)
         const pend = global.pendingStatus?.get(m.sender)
@@ -218,6 +221,13 @@ async function start() {
   })
 
   sock.ev.on('creds.update', saveCreds)
+
+  sock.ev.on('call', async ([call]) => {
+    if (global.set.anticall && call.status === 'offer') {
+      await sock.rejectCall(call.id, call.from).catch(() => {})
+      logger.info('Rejected call from ' + call.from)
+    }
+  })
 
   setInterval(() => {
     const mem = process.memoryUsage().rss / 1024 / 1024
@@ -339,6 +349,13 @@ async function startClusterPrimary() {
 
   sock.ev.on('creds.update', saveCreds)
 
+  sock.ev.on('call', async ([call]) => {
+    if (global.set.anticall && call.status === 'offer') {
+      await sock.rejectCall(call.id, call.from).catch(() => {})
+      logger.info('Rejected call from ' + call.from)
+    }
+  })
+
   setInterval(() => {
     const mem = process.memoryUsage().rss / 1024 / 1024
     if (typeof global.gc === 'function' && mem > 400) global.gc()
@@ -394,6 +411,9 @@ if (CLUSTER && cluster.isWorker) {
     const m = await smsg(proxySock, msg)
     if (typeof global.antitoxicChecker === 'function') {
       await global.antitoxicChecker(proxySock, m)
+    }
+    if (typeof global.antivirtexChecker === 'function') {
+      await global.antivirtexChecker(proxySock, m)
     }
     if (global.set.self && !(m.isGroup && get(m.chat).public) && ![m.owner, proxySock.decodeJid(proxySock.user?.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) return
     await routeCommand(proxySock, m)
