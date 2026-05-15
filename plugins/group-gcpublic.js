@@ -21,5 +21,5 @@ export default async ({ sock, m, args, isOwner, isGroup }) => {
     return m.reply('Public mode disabled — only owner/bot can use commands')
   }
 
-  m.reply('Usage: .public on/off')
+  m.reply('Usage: .gcpublic on/off')
 }
