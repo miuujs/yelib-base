@@ -1,4 +1,4 @@
-import { writeFile, unlink } from 'fs/promises'
+import { writeFile, unlink, stat } from 'fs/promises'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
@@ -10,12 +10,15 @@ export default async ({ sock, m, args, cmd, isOwner }) => {
   const mime = (q.msg || q).mimetype || ''
   const cap = args.join(' ').trim() || q.text || ''
 
+  const MAX_SIZE = 15 * 1024 * 1024
+
   let content
 
   try {
     if (type === 'imageMessage' || /image/i.test(mime)) {
       const buf = await q.download()
       if (!buf) throw new Error('Download failed')
+      if (buf.length > MAX_SIZE) throw new Error('Media too large (max 15 MB)')
       const ext = mime.split('/')[1] || 'jpg'
       const tmp = join(tmpdir(), 'swgc_' + Date.now() + '.' + ext)
       await writeFile(tmp, buf)
@@ -23,6 +26,7 @@ export default async ({ sock, m, args, cmd, isOwner }) => {
     } else if (type === 'videoMessage' || /video/i.test(mime)) {
       const buf = await q.download()
       if (!buf) throw new Error('Download failed')
+      if (buf.length > MAX_SIZE) throw new Error('Video too large (max 15 MB)')
       const ext = mime.split('/')[1] || 'mp4'
       const tmp = join(tmpdir(), 'swgc_' + Date.now() + '.' + ext)
       await writeFile(tmp, buf)
@@ -31,6 +35,7 @@ export default async ({ sock, m, args, cmd, isOwner }) => {
       if (cap) m.reply('Audio does not support caption')
       const buf = await q.download()
       if (!buf) throw new Error('Download failed')
+      if (buf.length > MAX_SIZE) throw new Error('Audio too large (max 15 MB)')
       const ext = mime.split('/')[1] || 'mp3'
       const tmp = join(tmpdir(), 'swgc_' + Date.now() + '.' + ext)
       await writeFile(tmp, buf)
