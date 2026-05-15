@@ -46,7 +46,7 @@ function ensureIpcListener() {
   if (ipcListenerActive) return
   ipcListenerActive = true
   process.on('message', (msg) => {
-    if (msg.type === 'groupMetadata-resp') {
+    if (msg.type === '_ipc-resp') {
       const p = pendingIpc[msg._ipcId]
       if (p) {
         clearTimeout(p.timer)
@@ -58,9 +58,26 @@ function ensureIpcListener() {
   })
 }
 
+function ipcCall(name, ...args) {
+  return new Promise((resolve, reject) => {
+    const _ipcId = Math.random().toString(36).slice(2) + Date.now()
+    const timer = setTimeout(() => reject(new Error(name + ' timeout')), 30000)
+    pendingIpc[_ipcId] = { resolve, reject, timer }
+    sendToPrimary({ type: '_ipc-call', name, args, _ipcId })
+  })
+}
+
+function ipcVoid(name, ...args) {
+  sendToPrimary({ type: '_ipc-call', name, args })
+}
+
+const LOCAL_SOCK_KEYS = new Set([
+  '_pending', 'user', 'chats', 'decodeJid', 'getJid', 'captureUnifiedResponse'
+])
+
 export function createProxySock(initData) {
   ensureIpcListener()
-  const sock = {
+  const target = {
     _pending: pendingIpc,
     user: initData.user,
     chats: initData.chats || {},
@@ -75,7 +92,7 @@ export function createProxySock(initData) {
     getJid(jid) {
       if (!jid) return jid
       if (jid.endsWith('@lid')) {
-        for (const chat of Object.values(sock.chats)) {
+        for (const chat of Object.values(target.chats)) {
           if (!chat?.participants) continue
           const u = chat.participants.find(p => p.lid === jid || p.id === jid)
           if (u) return u.phoneNumber || u.id
@@ -83,22 +100,15 @@ export function createProxySock(initData) {
       }
       return jid
     },
-    sendMessage(jid, content, options) {
-      sendToPrimary({ type: 'sendMessage', jid, content, options })
-    },
-    relayMessage(jid, message, opts) {
-      sendToPrimary({ type: 'relayMessage', jid, message, options: opts || {} })
-    },
-    groupMetadata(jid) {
-      return new Promise((resolve, reject) => {
-        const _ipcId = Math.random().toString(36).slice(2) + Date.now()
-        const timer = setTimeout(() => reject(new Error('groupMetadata timeout')), 15000)
-        sock._pending[_ipcId] = { resolve, reject, timer }
-        sendToPrimary({ type: 'groupMetadata', jid, _ipcId })
-      })
-    }
+    captureUnifiedResponse(msg) { return bail.captureUnifiedResponse?.(msg) }
   }
-  return sock
+  return new Proxy(target, {
+    get(t, prop) {
+      if (prop in t || LOCAL_SOCK_KEYS.has(prop)) return t[prop]
+      return (...args) => ipcCall(prop, ...args)
+    },
+    set(t, prop, val) { t[prop] = val; return true }
+  })
 }
 
 export function updateProxySock(proxy, data) {
@@ -113,6 +123,21 @@ export function updateProxySock(proxy, data) {
 let primarySockRef = null
 let primaryIpcSetup = false
 
+const VOID_METHODS = new Set([
+  'sendMessage', 'relayMessage',
+  'groupSettingUpdate', 'groupUpdateDescription', 'groupUpdateSubject',
+  'groupLeave', 'groupJoinApprovalMode', 'groupMemberAddMode',
+  'updateMemberLabel', 'sendPeerDataOperationMessage',
+  'newsletterFollow', 'newsletterUnfollow', 'newsletterMute', 'newsletterUnmute',
+  'newsletterUpdateName', 'newsletterUpdateDescription',
+  'newsletterUpdatePicture', 'newsletterRemovePicture',
+  'newsletterReactMessage', 'newsletterChangeOwner', 'newsletterDemote',
+  'newsletterDelete',
+  'communityLeave', 'communityUpdateSubject',
+  'communityLinkGroup', 'communityUnlinkGroup',
+  'communityUpdateDescription'
+])
+
 export function setupPrimaryIpc(sock) {
   primarySockRef = sock
 
@@ -121,16 +146,23 @@ export function setupPrimaryIpc(sock) {
     cluster.on('message', (worker, msg) => {
       const s = primarySockRef
       if (!s) return
-      if (msg.type === 'sendMessage') {
-        s.sendMessage(msg.jid, msg.content, msg.options || {}).catch(() => {})
-      } else if (msg.type === 'relayMessage') {
-        s.relayMessage(msg.jid, msg.message, msg.options || {}).catch(() => {})
-      } else if (msg.type === 'groupMetadata') {
-        s.groupMetadata(msg.jid).then(r => {
-          worker.send({ type: 'groupMetadata-resp', _ipcId: msg._ipcId, data: r })
-        }).catch(e => {
-          worker.send({ type: 'groupMetadata-resp', _ipcId: msg._ipcId, error: e.message })
-        })
+
+      if (msg.type === '_ipc-call') {
+        const { name, args, _ipcId } = msg
+        const fn = s[name]
+        if (typeof fn !== 'function') {
+          if (_ipcId) worker.send({ type: '_ipc-resp', _ipcId, error: name + ' is not a function' })
+          return
+        }
+
+        const result = fn.apply(s, args || [])
+        if (_ipcId) {
+          Promise.resolve(result).then(data => {
+            worker.send({ type: '_ipc-resp', _ipcId, data })
+          }).catch(err => {
+            worker.send({ type: '_ipc-resp', _ipcId, error: err.message })
+          })
+        }
       }
     })
 
