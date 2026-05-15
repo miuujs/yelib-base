@@ -1,4 +1,5 @@
-export default async ({ sock, m }) => {
+export default async ({ sock, m, isOwner }) => {
+  if (!isOwner) return m.reply('Owner only')
   const q = m.quoted
   if (!q) return m.reply('Reply to a view-once message')
 

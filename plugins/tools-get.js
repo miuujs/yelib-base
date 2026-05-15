@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-export default async ({ sock, m, args }) => {
+export default async ({ sock, m, args, isOwner }) => {
+  if (!isOwner && !m.isAdmin) return m.reply('Admin only')
   let url = args.join(' ') || (m.quoted?.text || '')
   if (!url) return m.reply('Usage: .get <url>\nExample: .get instagram.com')
 

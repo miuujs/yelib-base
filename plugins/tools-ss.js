@@ -59,7 +59,8 @@ async function wrapFrame(imgBuf, type) {
     .toBuffer()
 }
 
-export default async ({ sock, m, args }) => {
+export default async ({ sock, m, args, isOwner }) => {
+  if (!isOwner && !m.isAdmin) return m.reply('Admin only')
   const raw = args.join(' ')
   const parts = raw.split(/\s+/)
   const url = parts[0]

@@ -1,4 +1,5 @@
-export default async ({ sock, m }) => {
+export default async ({ sock, m, isOwner }) => {
+  if (!isOwner && !m.isAdmin) return m.reply('Admin only')
   if (!m.quoted) return m.reply('Reply to a status/story message')
 
   try {

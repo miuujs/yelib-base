@@ -1,5 +1,6 @@
-export default async ({ sock, m }) => {
+export default async ({ sock, m, isOwner }) => {
   if (!m.isGroup) return m.reply('Group only')
+  if (!isOwner && !m.isAdmin) return m.reply('Group admin only')
 
   const meta = await sock.groupMetadata(m.chat)
   const admins = meta.participants.filter(p => p.admin).map(p => '  • @' + p.id.split('@')[0])

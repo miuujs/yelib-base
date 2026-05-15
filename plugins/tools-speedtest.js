@@ -24,7 +24,8 @@ function iperfClient(port, dur, reverse) {
   })
 }
 
-export default async ({ sock, m, args }) => {
+export default async ({ sock, m, args, isOwner }) => {
+  if (!isOwner && !m.isAdmin) return m.reply('Admin only')
   const count = Math.min(Math.max(parseInt(args[0]) || 1, 1), 10)
 
   await m.reply('Running localhost speedtest (' + count + 'x)...')

@@ -174,7 +174,8 @@ function rating(s) {
   return 'POOR'
 }
 
-export default async ({ sock, m }) => {
+export default async ({ sock, m, isOwner }) => {
+  if (!isOwner && !m.isAdmin) return m.reply('Admin only')
   await m.reply('[ *] Running VPS benchmark...')
 
   try {

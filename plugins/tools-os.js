@@ -30,7 +30,8 @@ const hideStr = (str, show = 3) => {
   return str.slice(0, show) + '****'
 }
 
-export default async ({ sock, m, args }) => {
+export default async ({ sock, m, isOwner }) => {
+  if (!isOwner && !m.isAdmin) return m.reply('Admin only')
   try {
     const used = process.memoryUsage()
     const cpus = os.cpus().map(cpu => {
