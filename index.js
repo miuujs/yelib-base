@@ -112,6 +112,28 @@ async function start() {
         global.m = await smsg(sock, msg)
         if (global.set.self && ![m.owner, sock.decodeJid(sock.user.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) continue
         await routeCommand(sock, m)
+
+        if (m.isGroup && m.body) {
+          const prefixes = global.set.prefix || ['.']
+          const isPrefixCmd = prefixes.some(p => m.body.startsWith(p))
+          const isEval = m.body.startsWith('=>') || m.body.startsWith('>')
+          let isCmd = isPrefixCmd || isEval
+          if (!isCmd && global.set.noprefix) {
+            const first = m.body.trim().split(/ +/)[0]?.toLowerCase() || ''
+            if (commandMap[first]) isCmd = true
+          }
+          if (!isCmd) {
+            const { get } = await import('./src/utils/database.js')
+            const custom = get(m.chat).custom || {}
+            for (const [keyword, reply] of Object.entries(custom)) {
+              if (m.body.toLowerCase().includes(keyword)) {
+                await sock.sendMessage(m.chat, { text: reply })
+                break
+              }
+            }
+          }
+        }
+
         const pend = global.pendingStatus?.get(m.sender)
         if (pend && Date.now() - pend.timestamp < 120000 && m.body?.includes('@g.us') && !m.isGroup) {
           global.pendingStatus.delete(m.sender)
