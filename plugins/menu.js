@@ -4,7 +4,6 @@ import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import os from 'os'
 import { formatBytes } from '../src/utils/tools.js'
-import { generateWAMessageFromContent } from 'baileys'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -78,7 +77,7 @@ export default async ({ sock, m }) => {
 ${dayName}, ${month} ${date}, ${year}
 ${time}`
 
-  const processed = await sock.messageBuilders.handleInteractive({
+  await sock.sendMessage(m.chat, {
     interactiveMessage: {
       title: text,
       footer: 'github:miuujs/baileys',
@@ -108,17 +107,5 @@ ${time}`
         }
       ]
     }
-  }, m.chat, m)
-
-  if (processed.interactiveMessage.contextInfo) {
-    delete processed.interactiveMessage.contextInfo.forwardingScore
-    delete processed.interactiveMessage.contextInfo.isForwarded
-  }
-
-  const msg = generateWAMessageFromContent(m.chat, processed, {
-    quoted: m,
-    userJid: sock.user.id
-  })
-
-  await sock.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
+  }, { quoted: m })
 }

@@ -362,6 +362,7 @@ if (CLUSTER && cluster.isWorker) {
   async function processMessage(msg) {
     if (!msg.message || !proxySock) return
     const m = await smsg(proxySock, msg)
+    if (global.set.self && ![m.owner, proxySock.decodeJid(proxySock.user?.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) return
     await routeCommand(proxySock, m)
     const pend = global.pendingStatus?.get(m.sender)
     if (pend && Date.now() - pend.timestamp < 120000 && m.body?.includes('@g.us') && !m.isGroup) {
