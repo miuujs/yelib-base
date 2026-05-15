@@ -34,8 +34,7 @@ export default async ({ sock, m }) => {
             { items: ['.sticker / .s', 'Convert image/video to sticker'] },
             { items: ['.toimg / .toimage', 'Convert sticker to image'] },
             { items: ['.tomp3', 'Convert video/audio to MP3'] },
-            { items: ['.tovn', 'Convert audio to voice note'] },
-            { items: ['.tourl / .upload', 'Upload media to catbox/0x0/tmpfiles'] }
+            { items: ['.tovn', 'Convert audio to voice note'] }
           ]
         }
       },
