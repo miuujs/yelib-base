@@ -15,6 +15,7 @@ export default async ({ sock, m, args, cmd, isOwner }) => {
     }
   } else if (cmd === 'eval' || cmd === 'ev') {
     Object.assign(global, bail)
+    global.sock = sock
     const code = args.join(' ')
     if (!code) return m.reply(JSON.stringify(m, null, 2).slice(0, 4000))
     try {
@@ -27,6 +28,7 @@ export default async ({ sock, m, args, cmd, isOwner }) => {
       if (result instanceof Promise) result = await result
       if (typeof result === 'function') result = result.toString()
       else if (typeof result !== 'string') result = JSON.stringify(result, null, 2)
+      if (result.length > 4000) result = result.slice(0, 4000) + '\n... (truncated)'
       m.reply('```' + result + '```')
     } catch (e) {
       m.reply('Error:\n```' + e.message + '```')
