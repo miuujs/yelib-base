@@ -181,9 +181,15 @@ export default async ({ sock, m }) => {
     const [cpu, mem, disk, net] = await Promise.all([cpuBench(), memBench(), diskBench(), netBench()])
     const score = calcScore({ cpu, mem, disk, net })
 
-    const maxCores = 8
-    const showCores = cpu.coreUsages.slice(0, maxCores)
-    const extraCores = cpu.coreUsages.length - maxCores
+    let swapTotal = 'N/A', swapUsed = 'N/A'
+    try {
+      const sw = execSync('swapon --show=Size,Used --noheadings -b 2>/dev/null', { encoding: 'utf8', timeout: 3000 }).trim()
+      if (sw) {
+        const parts = sw.split(/\s+/)
+        swapTotal = formatBytes(parseInt(parts[0]))
+        swapUsed = parts[1] ? formatBytes(parseInt(parts[1])) : '0'
+      }
+    } catch {}
 
     let txt =
       '*VPS BENCHMARK RESULTS*\n' +
@@ -193,19 +199,20 @@ export default async ({ sock, m }) => {
       '- Cores: ' + cpu.cores + '\n' +
       '- Platform: ' + os.platform() + ' ' + os.arch() + '\n' +
       '- Hostname: ' + os.hostname() + '\n' +
+      '- Node: ' + process.version + '\n' +
 
       '\n*MEMORY*\n' +
       '- ' + formatBytes(mem.used) + ' / ' + formatBytes(mem.total) + ' (' + mem.usagePercent + '%)\n' +
       drawBar(parseFloat(mem.usagePercent), 15) + '\n' +
       '- Speed: ' + mem.speedMBps + ' MB/s\n' +
+      '- Swap: ' + swapUsed + ' / ' + swapTotal + '\n' +
 
       '\n*CPU*\n' +
       '- Single Core: ' + cpu.singleCore + '/100\n' +
       '- Multi Core: ' + cpu.multiCore + '/100\n' +
       '- Hash: ' + cpu.hashSpeed + ' h/s\n' +
       '- Compression: ' + cpu.compSpeed + ' MB/s\n' +
-      showCores.map((u, i) => '- Core ' + (i + 1) + ': ' + drawBar(u, 12) + ' ' + u.toFixed(1) + '%').join('\n') +
-      (extraCores > 0 ? '\n- ...and ' + extraCores + ' more cores' : '') + '\n' +
+      cpu.coreUsages.map((u, i) => '- Core ' + (i + 1) + ': ' + drawBar(u, 12) + ' ' + u.toFixed(1) + '%').join('\n') + '\n' +
 
       '\n*DISK*\n' +
       '- Read: ' + disk.readSpeed + ' MB/s\n' +

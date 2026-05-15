@@ -1,5 +1,6 @@
 import os from 'os'
 import v8 from 'v8'
+import { execSync } from 'child_process'
 
 const formatSize = (size) => (size / 1024 / 1024).toFixed(2) + ' MB'
 
@@ -24,6 +25,11 @@ const hideIp = (ip) => {
   return ip
 }
 
+const hideStr = (str, show = 3) => {
+  if (!str || str.length <= show) return str || 'N/A'
+  return str.slice(0, show) + '****'
+}
+
 export default async ({ sock, m, args }) => {
   try {
     const used = process.memoryUsage()
@@ -46,6 +52,15 @@ export default async ({ sock, m, args }) => {
     const myip = await fetch('https://ipinfo.io/json').then(r => r.json()).catch(() => ({}))
     const respTime = ((Date.now() - new Date((m.messageTimestamp || 0) * 1000)) / 1000).toFixed(3)
 
+    let swap = ''
+    try {
+      const sw = execSync('swapon --show=Size,Used --noheadings -b 2>/dev/null', { encoding: 'utf8', timeout: 3000 }).trim()
+      if (sw) {
+        const parts = sw.split(/\s+/)
+        swap = '\n- Swap: ' + formatSize(parseInt(parts[1] || 0)) + ' / ' + formatSize(parseInt(parts[0]))
+      }
+    } catch {}
+
     let teks =
       '*SERVER*\n' +
       '- Response: ' + respTime + 's\n' +
@@ -54,12 +69,13 @@ export default async ({ sock, m, args }) => {
       '- Platform: ' + os.platform() + '\n' +
       '- OS: ' + (os.version ? os.version() + ' / ' : '') + os.release() + '\n' +
       '- Arch: ' + os.arch() + '\n' +
-      '- RAM: ' + formatSize(os.totalmem() - os.freemem()) + ' / ' + formatSize(os.totalmem()) + '\n' +
+      '- Node: ' + process.version + '\n' +
+      '- RAM: ' + formatSize(os.totalmem() - os.freemem()) + ' / ' + formatSize(os.totalmem()) + swap + '\n' +
 
       '\n*PROVIDER*\n' +
       '- IP: ' + (myip.ip ? hideIp(myip.ip) : 'N/A') + '\n' +
       '- Region: ' + (myip.region || 'N/A') + ' ' + (myip.country || '') + '\n' +
-      '- ISP: ' + (myip.org || 'N/A') + '\n' +
+      '- ISP: ' + hideStr(myip.org) + '\n' +
 
       '\n*RUNTIME OS*\n' +
       '- ' + runtime(os.uptime()) + '\n' +
@@ -88,12 +104,11 @@ export default async ({ sock, m, args }) => {
       ).join('\n')
 
       teks += '\n\n*CORE USAGE (' + cpus.length + ' Core)*\n'
-      teks += cpus.slice(0, 8).map((cpu, i) =>
+      teks += cpus.map((cpu, i) =>
         'Core ' + (i + 1) + ': ' + Object.keys(cpu.times).map(type =>
           type + ' ' + ((100 * cpu.times[type]) / cpu.total).toFixed(1) + '%'
         ).join(' | ')
       ).join('\n')
-      if (cpus.length > 8) teks += '\n...and ' + (cpus.length - 8) + ' more cores'
     }
 
     await m.reply(teks)
