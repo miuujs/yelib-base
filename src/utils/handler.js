@@ -67,8 +67,9 @@ export async function sockConfig(opts) {
       if (action === 'add' && settings.welcome) {
         const groupName = data.subject || 'Group'
         const members = data.participants?.length || 0
-        for (const jid of participants) {
-          const name = data.participants?.find(p => bail.areJidsSameUser(p.id, jid))?.pushName || jid.split('@')[0]
+        for (const p of participants) {
+          const jid = p.phoneNumber ? p.phoneNumber + '@s.whatsapp.net' : p.id
+          const name = p.username || p.phoneNumber || jid.split('@')[0]
           const text = (settings.welcomeText || 'Welcome {name}!')
             .replace(/{name}/g, name)
             .replace(/{group}/g, groupName)
@@ -80,8 +81,9 @@ export async function sockConfig(opts) {
       if (action === 'remove' && settings.goodbye) {
         const groupName = data.subject || 'Group'
         const members = data.participants?.length || 0
-        for (const jid of participants) {
-          const name = jid.split('@')[0]
+        for (const p of participants) {
+          const jid = p.phoneNumber ? p.phoneNumber + '@s.whatsapp.net' : p.id
+          const name = p.username || p.phoneNumber || jid.split('@')[0]
           const text = (settings.goodbyeText || 'Goodbye {name}!')
             .replace(/{name}/g, name)
             .replace(/{group}/g, groupName)
@@ -89,7 +91,9 @@ export async function sockConfig(opts) {
           await sock.sendMessage(id, { text })
         }
       }
-    } catch {}
+    } catch (e) {
+      console.error('Welcome/Goodbye error:', e)
+    }
   })
 
   sock.ev.on('groups.update', async (updates) => {
