@@ -2,10 +2,10 @@ import axios from 'axios'
 import FormData from 'form-data'
 
 const SERVICES = {
-  tmpfiles: { url: 'https://tmpfiles.org/api/v1/upload', field: 'file' },
-  uguu: { url: 'https://uguu.se/upload', field: 'files[]' },
-  litterbox: { url: 'https://litterbox.catbox.moe/resources/internals/api.php', field: 'fileToUpload', extra: { reqtype: 'fileupload', time: '24h' } },
-  catbox: { url: 'https://catbox.moe/user/api.php', field: 'fileToUpload', extra: { reqtype: 'fileupload' } },
+  tmpfiles: { url: 'https://tmpfiles.org/api/v1/upload', field: 'file', status: '✅' },
+  uguu: { url: 'https://uguu.se/upload', field: 'files[]', status: '✅' },
+  litterbox: { url: 'https://litterbox.catbox.moe/resources/internals/api.php', field: 'fileToUpload', status: '✅', extra: { reqtype: 'fileupload', time: '24h' } },
+  catbox: { url: 'https://catbox.moe/user/api.php', field: 'fileToUpload', status: '❌', extra: { reqtype: 'fileupload' } },
 }
 
 function formatUrl(service, data) {
@@ -30,13 +30,38 @@ async function upload(buf, service) {
 }
 
 export default async ({ sock, m, args }) => {
-  const service = args[0]?.toLowerCase() || 'tmpfiles'
-  if (!SERVICES[service]) return m.reply('Services: tmpfiles, uguu, litterbox, catbox\nUsage: .tourl [service] (reply/send media)')
+  const service = args[0]?.toLowerCase()
+
+  if (!service) {
+    const rows = Object.entries(SERVICES).map(([k, v]) => ({
+      title: `${v.status} ${k}${k === 'litterbox' ? ' (24h)' : ''}${v.status === '❌' ? ' — blocked' : ''}`,
+      id: `.tourl ${k}`
+    }))
+    return await sock.sendMessage(m.chat, {
+      interactiveMessage: {
+        title: '*Upload Services*\n\nReply to media, then select service:',
+        footer: 'atau langsung .tourl <nama> sambil reply',
+        buttons: [
+          {
+            name: 'single_select',
+            buttonParamsJson: JSON.stringify({
+              title: 'Choose Service',
+              sections: [{ title: 'Services', rows }]
+            })
+          }
+        ]
+      }
+    }, { quoted: m })
+  }
+
+  if (!SERVICES[service]) return m.reply('Service not found. Use .tourl to see list')
 
   let media
-  if (m.isMedia) media = await m.download()
-  else if (m.quoted?.isMedia) media = await m.quoted.download()
-  else if (args[1]?.startsWith('http')) {
+  if (m.isMedia) {
+    media = await m.download()
+  } else if (m.quoted?.isMedia) {
+    media = await m.quoted.download()
+  } else if (args[1]?.startsWith('http')) {
     const { data } = await axios.get(args[1], { responseType: 'arraybuffer', timeout: 30000 })
     media = Buffer.from(data)
   } else return m.reply('Reply/send media with caption .tourl')
