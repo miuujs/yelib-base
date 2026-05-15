@@ -52,3 +52,30 @@ npm run dev
 ```
 
 Pair the bot by scanning the QR code or using the pairing code (default).
+
+### Self / Public Mode
+
+- **Self mode (default)**: bot **ignores all commands from non-owners** — no reply, no error, completely silent.
+- **Public mode**: bot responds to everyone.
+
+Toggle via command (owner only): `.set self true/false`
+
+---
+
+## Cluster Mode
+
+For multi-core machines, run the bot in cluster mode. The primary process handles the WhatsApp connection; workers process commands concurrently.
+
+```bash
+# default worker count = CPU cores
+npm run start:cluster
+
+# custom worker count
+CLUSTER_WORKERS=2 npm run start:cluster
+
+# with nodemon
+npm run dev:cluster
+```
+
+> [!CAUTION]
+> Do **not** use pm2's built-in `-i` cluster mode — it forks multiple independent processes that will fight over the same session file. Use the built-in cluster mode above instead.
