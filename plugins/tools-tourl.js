@@ -2,10 +2,10 @@ import axios from 'axios'
 import FormData from 'form-data'
 
 const SERVICES = {
-  tmpfiles: { url: 'https://tmpfiles.org/api/v1/upload', field: 'file', status: '✅' },
-  uguu: { url: 'https://uguu.se/upload', field: 'files[]', status: '✅' },
-  litterbox: { url: 'https://litterbox.catbox.moe/resources/internals/api.php', field: 'fileToUpload', status: '✅', extra: { reqtype: 'fileupload', time: '24h' } },
-  catbox: { url: 'https://catbox.moe/user/api.php', field: 'fileToUpload', status: '❌', extra: { reqtype: 'fileupload' } },
+  tmpfiles: { url: 'https://tmpfiles.org/api/v1/upload', field: 'file', ok: true },
+  uguu: { url: 'https://uguu.se/upload', field: 'files[]', ok: true },
+  litterbox: { url: 'https://litterbox.catbox.moe/resources/internals/api.php', field: 'fileToUpload', ok: true, extra: { reqtype: 'fileupload', time: '24h' } },
+  catbox: { url: 'https://catbox.moe/user/api.php', field: 'fileToUpload', ok: false, extra: { reqtype: 'fileupload' } },
 }
 
 function formatUrl(service, data) {
@@ -34,7 +34,7 @@ export default async ({ sock, m, args }) => {
 
   if (!service) {
     const rows = Object.entries(SERVICES).map(([k, v]) => ({
-      title: `${v.status} ${k}${k === 'litterbox' ? ' (24h)' : ''}${v.status === '❌' ? ' — blocked' : ''}`,
+      title: `${v.ok ? '[OK]' : '[X]'} ${k}${k === 'litterbox' ? ' (24h)' : ''}${v.ok ? '' : ' — blocked'}`,
       id: `.tourl ${k}`
     }))
     return await sock.sendMessage(m.chat, {
