@@ -28,5 +28,4 @@ global.sticker = {
 global.bail = bail
 global.chalk = chalk
 global.start = Date.now()
-global.activeGroupCalls = new Map()
 

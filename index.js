@@ -184,11 +184,6 @@ async function start() {
       console.error(err)
     }
   })
-  sock.ev.on('call', ([call]) => {
-    if (call.isGroup && call.status === 'offer') {
-      global.activeGroupCalls.set(call.groupJid, call)
-    }
-  })
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect } = update
     if (connection === 'close') {
@@ -223,12 +218,6 @@ async function start() {
   })
 
   sock.ev.on('creds.update', saveCreds)
-
-  sock.ev.on('call', ([call]) => {
-    if (call.isGroup && call.status === 'offer') {
-      global.activeGroupCalls.set(call.groupJid, call)
-    }
-  })
 
   setInterval(() => {
     const mem = process.memoryUsage().rss / 1024 / 1024
@@ -336,12 +325,6 @@ async function startClusterPrimary() {
   })
 
   sock.ev.on('creds.update', saveCreds)
-
-  sock.ev.on('call', ([call]) => {
-    if (call.isGroup && call.status === 'offer') {
-      global.activeGroupCalls.set(call.groupJid, call)
-    }
-  })
 
   setInterval(() => {
     const mem = process.memoryUsage().rss / 1024 / 1024
