@@ -55,8 +55,9 @@ export async function sockConfig(opts) {
   sock.ev.on('group-participants.update', async ({ id, participants, action }) => {
     if (!id || id === 'status@broadcast') return
     try {
-      const data = await sock.groupMetadata(id)
-      setCached(id, data)
+      const cached = getCached(id)
+      const data = cached || await sock.groupMetadata(id)
+      if (!cached) setCached(id, data)
       sock.chats[id] = data
       await new Promise(r => setTimeout(r, 500))
 
@@ -82,8 +83,9 @@ export async function sockConfig(opts) {
     for (const u of updates) {
       if (!u.id || u.id === 'status@broadcast' || !u.id.endsWith('@g.us')) continue
       try {
-        const data = await sock.groupMetadata(u.id)
-        setCached(u.id, data)
+        const cached = getCached(u.id)
+        const data = cached || await sock.groupMetadata(u.id)
+        if (!cached) setCached(u.id, data)
         sock.chats[u.id] = data
         await new Promise(r => setTimeout(r, 500))
       } catch {}
