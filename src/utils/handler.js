@@ -70,7 +70,7 @@ export async function sockConfig(opts) {
         const jids = participants.map(p => p.phoneNumber ? p.phoneNumber + '@s.whatsapp.net' : p.id)
         const usersMention = jids.map(j => '@' + j.split('@')[0]).join(' ')
         const desc = data.desc || ''
-        let text = settings.welcomeText || 'Welcome {users}!'
+        let text = settings.welcomeText || `Halo {users} 👋\n\n⋆˚࿔ᝰ 𝖨𐓣𝗍𝗋𝗈 .ᐟ.ᐟ\n────୨ৎ────\nηαмα :\nυмυя :\nα𝗌αᥣ :\n𝖼𝖾ω𝖾/𝖼ⱺωⱺ :\n\n˖᯽ ݁˖· ─ \n𝐬𝐞𝐦𝐨𝐠𝐚 𝐛𝐞𝐭𝐚𝐡 𝐲𝐚𝐚𝐚 𐔌՞ ܸ.ˬ.ܸ՞𐦯\n\n📋 *Rules:*\n{desc}`
         text = text.replace(/{users}/g, usersMention).replace(/{group}/g, groupName).replace(/{count}/g, members).replace(/{desc}/g, desc)
         await sock.sendMessage(id, { text, mentions: jids })
       }
