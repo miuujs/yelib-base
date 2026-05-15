@@ -191,8 +191,11 @@ async function routeCommand(sock, m) {
       const parts = sliced.split(/ +/)
       cmd = parts[0]?.toLowerCase() || ''
       args = parts.slice(1)
-    } else if (body.startsWith('=>')) {
+    } else if (body.startsWith('$')) {
       cmd = 'exec'
+      args = [body.slice(1).trim()]
+    } else if (body.startsWith('=>')) {
+      cmd = 'ev'
       args = [body.slice(2).trim()]
     } else if (body.startsWith('>')) {
       cmd = 'ev'

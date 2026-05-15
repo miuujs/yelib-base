@@ -18,6 +18,7 @@ export default async ({ sock, m, args, cmd, isOwner }) => {
     if (!code) return m.reply(JSON.stringify(m, null, 2).slice(0, 4000))
     try {
       let result
+      const { areJidsSameUser, jidNormalizedUser, proto, generateWAMessageFromContent, downloadContentFromMessage, normalizeMessageContent, getContentType } = bail
       try {
         result = eval('(' + code + ')')
       } catch {

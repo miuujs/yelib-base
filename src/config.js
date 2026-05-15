@@ -9,7 +9,7 @@ global.owner = {
 }
 
 global.set = {
-  prefix: parseList('.,!,/,#,$,-,+,;,~,&,%'),
+  prefix: parseList('.,!,/,#,-,+,;,~,&,%'),
   self: true,
   noprefix: true
 }
