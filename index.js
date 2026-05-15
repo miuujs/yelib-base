@@ -229,7 +229,20 @@ async function start() {
       logger.warn('Memory ' + mem.toFixed(0) + 'MB, restarting...')
       process.exit(1)
     }
-  }, 60000)
+
+    import('fs/promises').then(async ({ readdir, rm, stat }) => {
+      try {
+        const files = await readdir('/tmp')
+        for (const f of files) {
+          if (f.startsWith('swgc_')) {
+            const p = join('/tmp', f)
+            const st = await stat(p)
+            if (Date.now() - st.mtimeMs > 600000) await rm(p).catch(() => {})
+          }
+        }
+      } catch {}
+    })
+  }, 600000) // 10 min cleanup
 }
 
 // ===== CLUSTER PRIMARY =====
@@ -333,7 +346,20 @@ async function startClusterPrimary() {
       logger.warn('Memory ' + mem.toFixed(0) + 'MB, restarting...')
       process.exit(1)
     }
-  }, 60000)
+
+    import('fs/promises').then(async ({ readdir, rm, stat }) => {
+      try {
+        const files = await readdir('/tmp')
+        for (const f of files) {
+          if (f.startsWith('swgc_')) {
+            const p = join('/tmp', f)
+            const st = await stat(p)
+            if (Date.now() - st.mtimeMs > 600000) await rm(p).catch(() => {})
+          }
+        }
+      } catch {}
+    })
+  }, 600000) // 10 min cleanup
 }
 
 // ===== CLUSTER WORKER =====
@@ -385,4 +411,19 @@ if (CLUSTER && cluster.isWorker) {
     }
     logger.print(m)
   }
+
+  setInterval(() => {
+    import('fs/promises').then(async ({ readdir, rm, stat }) => {
+      try {
+        const files = await readdir('/tmp')
+        for (const f of files) {
+          if (f.startsWith('swgc_')) {
+            const p = join('/tmp', f)
+            const st = await stat(p)
+            if (Date.now() - st.mtimeMs > 600000) await rm(p).catch(() => {})
+          }
+        }
+      } catch {}
+    })
+  }, 600000)
 }
