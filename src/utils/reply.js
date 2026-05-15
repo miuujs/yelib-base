@@ -22,29 +22,31 @@ export function clockString(ms) {
 
 export async function adReply(sock, m, text, chat) {
   const target = typeof chat === 'string' ? chat : m.chat
-  try {
-    const bodyText = 'Runtime: ' + clockString(Date.now() - global.start)
 
+  const plain = () => sock.sendMessage(target, { text })
+
+  try {
     const msg = { text }
-    msg.contextInfo = {
-      mentionedJid: [m.sender, m?.quoted?.sender || ''].filter(Boolean),
-      isForwarded: true,
-      forwardingScore: 999
-    }
+    const ci = {}
+
+    const mentions = [m.sender, m?.quoted?.sender].filter(Boolean)
+    if (mentions.length) ci.mentionedJid = mentions
 
     if (menuBuffer) {
-      msg.contextInfo.externalAdReply = {
+      ci.externalAdReply = {
         title: 'yelib-base',
-        body: bodyText,
+        body: 'Runtime: ' + clockString(Date.now() - global.start),
         thumbnail: menuBuffer,
         mediaType: 1,
-        sourceUrl: 'https://github.com/miuujs/yelib-base',
-        sourceType: '1'
+        sourceUrl: 'https://github.com/miuujs/yelib-base'
       }
     }
 
-    return await sock.sendMessage(target, msg, { quoted: m })
+    if (Object.keys(ci).length) msg.contextInfo = ci
+
+    const q = m?.key && m?.message ? { key: m.key, message: m.message } : undefined
+    await sock.sendMessage(target, msg, { ...(q ? { quoted: q } : {}) })
   } catch (e) {
-    return sock.sendMessage(target, { text }, { quoted: m })
+    return plain()
   }
 }
