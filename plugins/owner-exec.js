@@ -28,8 +28,17 @@ export default async ({ sock, m, args, cmd, isOwner }) => {
       if (result instanceof Promise) result = await result
       if (typeof result === 'function') result = result.toString()
       else if (typeof result !== 'string') result = JSON.stringify(result, null, 2)
-      if (result.length > 4000) result = result.slice(0, 4000) + '\n... (truncated)'
-      m.reply('```' + result + '```')
+      if (result.length > 4000) {
+        const { writeFile, unlink } = await import('fs/promises')
+        const { join } = await import('path')
+        const { tmpdir } = await import('os')
+        const fp = join(tmpdir(), 'eval_' + Date.now() + '.txt')
+        await writeFile(fp, result)
+        await sock.sendMessage(m.chat, { document: { url: fp }, mimetype: 'text/plain', fileName: 'eval.txt', caption: 'Output too long, sent as file' }, { quoted: m })
+        unlink(fp).catch(() => {})
+      } else {
+        m.reply('```' + result + '```')
+      }
     } catch (e) {
       m.reply('Error:\n```' + e.message + '```')
     }
