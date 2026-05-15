@@ -36,19 +36,7 @@ npm install
 ```
 
 > [!NOTE]
-> Some features require system dependencies like **ffmpeg**, **libwebp**, etc.
-> If you're using a **Pterodactyl panel** (Docker), these are already included — no extra steps needed.
-> For manual/VPS installations, install ffmpeg via your package manager:
-> ```bash
-> # Debian/Ubuntu
-> apt install ffmpeg
->
-> # CentOS/RHEL
-> yum install ffmpeg
->
-> # Arch Linux
-> pacman -S ffmpeg
-> ```
+> System dependencies (**ffmpeg**, **imagemagick**, **libnspr4**, etc.) are installed automatically during `npm install`. No manual steps needed.
 ---
 
 ## Usage
