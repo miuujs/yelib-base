@@ -29,44 +29,54 @@ async function upload(buf, service) {
   return formatUrl(service, data)
 }
 
+async function getMedia(m, args) {
+  if (m.isMedia) return await m.download()
+  if (m.quoted?.isMedia) return await m.quoted.download()
+  if (args[1]?.startsWith('http')) {
+    const { data } = await axios.get(args[1], { responseType: 'arraybuffer', timeout: 30000 })
+    return Buffer.from(data)
+  }
+  return null
+}
+
 export default async ({ sock, m, args }) => {
   const service = args[0]?.toLowerCase()
+  const CACHE_TTL = 120000
+
+  if (!global._tourlCache) global._tourlCache = new Map()
 
   if (!service) {
+    const media = await getMedia(m, args)
+    if (media) global._tourlCache.set(m.sender, { media, timestamp: Date.now() })
+
     const rows = Object.entries(SERVICES).map(([k, v]) => ({
       title: `${v.ok ? '[OK]' : '[X]'} ${k}${k === 'litterbox' ? ' (24h)' : ''}${v.ok ? '' : ' — blocked'}`,
       id: `.tourl ${k}`
     }))
     return await sock.sendMessage(m.chat, {
       interactiveMessage: {
-        title: '*Upload Services*\n\nReply to media, then select service:',
-        footer: 'atau langsung .tourl <nama> sambil reply',
-        buttons: [
-          {
-            name: 'single_select',
-            buttonParamsJson: JSON.stringify({
-              title: 'Choose Service',
-              sections: [{ title: 'Services', rows }]
-            })
-          }
-        ]
+        title: '*Upload Services*\n\nPilih service untuk upload:',
+        footer: 'atau .tourl <nama> sambil reply media',
+        buttons: [{
+          name: 'single_select',
+          buttonParamsJson: JSON.stringify({
+            title: 'Choose Service',
+            sections: [{ title: 'Services', rows }]
+          })
+        }]
       }
     }, { quoted: m })
   }
 
   if (!SERVICES[service]) return m.reply('Service not found. Use .tourl to see list')
 
-  let media
-  if (m.isMedia) {
-    media = await m.download()
-  } else if (m.quoted?.isMedia) {
-    media = await m.quoted.download()
-  } else if (args[1]?.startsWith('http')) {
-    const { data } = await axios.get(args[1], { responseType: 'arraybuffer', timeout: 30000 })
-    media = Buffer.from(data)
-  } else return m.reply('Reply/send media with caption .tourl')
-
-  if (!media) return m.reply('Failed to get media')
+  let media = await getMedia(m, args)
+  if (!media && global._tourlCache.has(m.sender)) {
+    const cached = global._tourlCache.get(m.sender)
+    if (Date.now() - cached.timestamp < CACHE_TTL) media = cached.media
+    global._tourlCache.delete(m.sender)
+  }
+  if (!media) return m.reply('Reply/send media with caption .tourl')
 
   try {
     const url = await upload(media, service)
