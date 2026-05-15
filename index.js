@@ -65,9 +65,6 @@ async function loadPlugins() {
 
 async function routeCommand(sock, m) {
   try {
-    if (typeof global.antitoxicChecker === 'function') {
-      await global.antitoxicChecker(sock, m)
-    }
     const body = m.body || ''
     if (!body) return
     const prefixes = global.set.prefix || ['.']
@@ -163,6 +160,9 @@ async function start() {
       for (const msg of chatUpdate.messages) {
         if (!msg.message) continue
         global.m = await smsg(sock, msg)
+        if (typeof global.antitoxicChecker === 'function') {
+          await global.antitoxicChecker(sock, m)
+        }
         if (global.set.self && ![m.owner, sock.decodeJid(sock.user.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) continue
         await routeCommand(sock, m)
         const pend = global.pendingStatus?.get(m.sender)
@@ -365,6 +365,9 @@ if (CLUSTER && cluster.isWorker) {
   async function processMessage(msg) {
     if (!msg.message || !proxySock) return
     const m = await smsg(proxySock, msg)
+    if (typeof global.antitoxicChecker === 'function') {
+      await global.antitoxicChecker(proxySock, m)
+    }
     if (global.set.self && ![m.owner, proxySock.decodeJid(proxySock.user?.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) return
     await routeCommand(proxySock, m)
     const pend = global.pendingStatus?.get(m.sender)
