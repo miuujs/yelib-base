@@ -16,3 +16,5 @@ export default async ({ sock, m, isOwner }) => {
   })
   m.reply('Group icon updated')
 }
+
+export const aliases = ['setprofile']
