@@ -9,6 +9,7 @@ import { dirname, join } from 'path'
 import logger from './src/utils/logger.js'
 import { sockConfig, smsg } from './src/utils/handler.js'
 import { initPrimary, setupPrimaryIpc, sendToWorker, createProxySock, updateProxySock, onPrimaryMsg, sendToPrimary, syncChatsToWorkers } from './src/cluster.js'
+import { get } from './src/utils/database.js'
 
 const CLUSTER = process.env.CLUSTER === '1' || process.env.CLUSTER === 'true'
 const __filename = fileURLToPath(import.meta.url)
@@ -163,7 +164,7 @@ async function start() {
         if (typeof global.antitoxicChecker === 'function') {
           await global.antitoxicChecker(sock, m)
         }
-        if (global.set.self && ![m.owner, sock.decodeJid(sock.user.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) continue
+        if (global.set.self && !(m.isGroup && get(m.chat).public) && ![m.owner, sock.decodeJid(sock.user.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) continue
         await routeCommand(sock, m)
         const pend = global.pendingStatus?.get(m.sender)
         if (pend && Date.now() - pend.timestamp < 120000 && m.body?.includes('@g.us') && !m.isGroup) {
@@ -368,7 +369,7 @@ if (CLUSTER && cluster.isWorker) {
     if (typeof global.antitoxicChecker === 'function') {
       await global.antitoxicChecker(proxySock, m)
     }
-    if (global.set.self && ![m.owner, proxySock.decodeJid(proxySock.user?.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) return
+    if (global.set.self && !(m.isGroup && get(m.chat).public) && ![m.owner, proxySock.decodeJid(proxySock.user?.id)].some(jid => bail.areJidsSameUser(jid, m.sender))) return
     await routeCommand(proxySock, m)
     const pend = global.pendingStatus?.get(m.sender)
     if (pend && Date.now() - pend.timestamp < 120000 && m.body?.includes('@g.us') && !m.isGroup) {
