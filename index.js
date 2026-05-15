@@ -88,7 +88,7 @@ async function routeCommand(sock, m) {
     } else if (body.startsWith('>')) {
       cmd = 'ev'
       args = [body.slice(1).trim()]
-    } else if (global.set.noprefix) {
+    } else if (global.set.noprefix && global.set.self) {
       const parts = body.trim().split(/ +/)
       const first = parts[0]?.toLowerCase() || ''
       if (commandMap[first]) {
