@@ -20,7 +20,7 @@ export function clockString(ms) {
   return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':')
 }
 
-export async function adReply(sock, m, text, chat) {
+export async function adReply(sock, m, text, chat, extraMentions) {
   const target = typeof chat === 'string' ? chat : m.chat
 
   const plain = () => sock.sendMessage(target, { text })
@@ -29,7 +29,7 @@ export async function adReply(sock, m, text, chat) {
     const msg = { text }
     const ci = {}
 
-    const mentions = [m.sender, m?.quoted?.sender].filter(Boolean)
+    const mentions = [m?.sender, m?.quoted?.sender, ...(extraMentions || [])].filter(Boolean)
     if (mentions.length) ci.mentionedJid = mentions
 
     if (menuBuffer) {
