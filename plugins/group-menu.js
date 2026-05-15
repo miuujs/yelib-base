@@ -29,7 +29,8 @@ export default async ({ sock, m }) => {
             { items: ['.setdesc', 'Change description'] },
             { items: ['.gcpublic', 'Per-group public mode'] },
             { items: ['.antitoxic', 'Auto-flag toxic words'] },
-            { items: ['.antivirtex', 'Delete virtex & >4000 char'] }
+            { items: ['.antivirtex', 'Delete virtex & >4000 char'] },
+            { items: ['.disappear', 'Set disappearing messages'] }
           ]
         }
       },
