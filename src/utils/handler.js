@@ -65,25 +65,12 @@ export async function sockConfig(opts) {
       const settings = get(id)
 
       if (action === 'add' && settings.welcome) {
-        const groupName = data.subject || 'Group'
-        const members = data.participants?.length || 0
-        const jids = participants.map(p => p.phoneNumber ? p.phoneNumber + '@s.whatsapp.net' : p.id)
-        const usersMention = jids.map(j => '@' + j.split('@')[0]).join(' ')
-        const desc = data.desc || ''
-        let text = settings.welcomeText || 'Welcome {users}!'
-        text = text.replace(/{users}/g, usersMention).replace(/{group}/g, groupName).replace(/{count}/g, members).replace(/{desc}/g, desc)
-        await sock.sendMessage(id, { text, contextInfo: { mentionedJid: jids } })
+        const text = settings.welcomeText || 'Welcome!'
+        await sock.sendMessage(id, { text })
       }
 
       if (action === 'remove' && settings.goodbye) {
-        const groupName = data.subject || 'Group'
-        const members = data.participants?.length || 0
-        const jids = participants.map(p => p.phoneNumber ? p.phoneNumber + '@s.whatsapp.net' : p.id)
-        const names = participants.map((p, i) => p.username || p.phoneNumber || jids[i].split('@')[0])
-        const usersText = names.join(', ')
-        const desc = data.desc || ''
-        let text = settings.goodbyeText || 'Goodbye {users}!'
-        text = text.replace(/{users}/g, usersText).replace(/{group}/g, groupName).replace(/{count}/g, members).replace(/{desc}/g, desc)
+        const text = settings.goodbyeText || 'Goodbye!'
         await sock.sendMessage(id, { text })
       }
     } catch (e) {
