@@ -67,29 +67,24 @@ export async function sockConfig(opts) {
       if (action === 'add' && settings.welcome) {
         const groupName = data.subject || 'Group'
         const members = data.participants?.length || 0
-        for (const p of participants) {
-          const jid = p.phoneNumber ? p.phoneNumber + '@s.whatsapp.net' : p.id
-          const name = p.username || p.phoneNumber || jid.split('@')[0]
-          const text = (settings.welcomeText || 'Welcome {name}!')
-            .replace(/{name}/g, name)
-            .replace(/{group}/g, groupName)
-            .replace(/{count}/g, members)
-          await sock.sendMessage(id, { text, mentions: [jid] })
-        }
+        const jids = participants.map(p => p.phoneNumber ? p.phoneNumber + '@s.whatsapp.net' : p.id)
+        const usersMention = jids.map(j => '@' + j.split('@')[0]).join(' ')
+        const desc = data.desc || ''
+        let text = settings.welcomeText || 'Welcome {users}!'
+        text = text.replace(/{users}/g, usersMention).replace(/{group}/g, groupName).replace(/{count}/g, members).replace(/{desc}/g, desc)
+        await sock.sendMessage(id, { text, mentions: jids })
       }
 
       if (action === 'remove' && settings.goodbye) {
         const groupName = data.subject || 'Group'
         const members = data.participants?.length || 0
-        for (const p of participants) {
-          const jid = p.phoneNumber ? p.phoneNumber + '@s.whatsapp.net' : p.id
-          const name = p.username || p.phoneNumber || jid.split('@')[0]
-          const text = (settings.goodbyeText || 'Goodbye {name}!')
-            .replace(/{name}/g, name)
-            .replace(/{group}/g, groupName)
-            .replace(/{count}/g, members)
-          await sock.sendMessage(id, { text })
-        }
+        const jids = participants.map(p => p.phoneNumber ? p.phoneNumber + '@s.whatsapp.net' : p.id)
+        const names = participants.map((p, i) => p.username || p.phoneNumber || jids[i].split('@')[0])
+        const usersText = names.join(', ')
+        const desc = data.desc || ''
+        let text = settings.goodbyeText || 'Goodbye {users}!'
+        text = text.replace(/{users}/g, usersText).replace(/{group}/g, groupName).replace(/{count}/g, members).replace(/{desc}/g, desc)
+        await sock.sendMessage(id, { text })
       }
     } catch (e) {
       console.error('Welcome/Goodbye error:', e)
