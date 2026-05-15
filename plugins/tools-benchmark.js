@@ -181,41 +181,45 @@ export default async ({ sock, m }) => {
     const [cpu, mem, disk, net] = await Promise.all([cpuBench(), memBench(), diskBench(), netBench()])
     const score = calcScore({ cpu, mem, disk, net })
 
+    const maxCores = 8
+    const showCores = cpu.coreUsages.slice(0, maxCores)
+    const extraCores = cpu.coreUsages.length - maxCores
+
     let txt =
-      'VPS BENCHMARK RESULTS\n' +
-      'Performance Score: ' + score + '/100 (' + rating(score) + ')\n' +
-      '\nSYSTEM SPECS\n' +
+      '*VPS BENCHMARK RESULTS*\n' +
+      'Score: ' + score + '/100 (' + rating(score) + ')\n' +
+      '\n*SYSTEM*\n' +
       '- CPU: ' + cpu.model + '\n' +
-      '- Cores: ' + cpu.cores + ' core(s)\n' +
+      '- Cores: ' + cpu.cores + '\n' +
       '- Platform: ' + os.platform() + ' ' + os.arch() + '\n' +
       '- Hostname: ' + os.hostname() + '\n' +
 
-      '\nMEMORY\n' +
-      '- RAM: ' + formatBytes(mem.used) + ' / ' + formatBytes(mem.total) + '\n' +
-      '- Usage: ' + mem.usagePercent + '%\n' +
+      '\n*MEMORY*\n' +
+      '- ' + formatBytes(mem.used) + ' / ' + formatBytes(mem.total) + ' (' + mem.usagePercent + '%)\n' +
       drawBar(parseFloat(mem.usagePercent), 15) + '\n' +
       '- Speed: ' + mem.speedMBps + ' MB/s\n' +
 
-      '\nCPU BENCHMARK\n' +
+      '\n*CPU*\n' +
       '- Single Core: ' + cpu.singleCore + '/100\n' +
       '- Multi Core: ' + cpu.multiCore + '/100\n' +
-      '- Hash: ' + cpu.hashSpeed + ' hashes/sec\n' +
+      '- Hash: ' + cpu.hashSpeed + ' h/s\n' +
       '- Compression: ' + cpu.compSpeed + ' MB/s\n' +
-      cpu.coreUsages.map((u, i) => '- Core ' + (i + 1) + ': ' + drawBar(u, 12) + ' ' + u.toFixed(1) + '%').join('\n') + '\n' +
+      showCores.map((u, i) => '- Core ' + (i + 1) + ': ' + drawBar(u, 12) + ' ' + u.toFixed(1) + '%').join('\n') +
+      (extraCores > 0 ? '\n- ...and ' + extraCores + ' more cores' : '') + '\n' +
 
-      '\nDISK I/O\n' +
+      '\n*DISK*\n' +
       '- Read: ' + disk.readSpeed + ' MB/s\n' +
       '- Write: ' + disk.writeSpeed + ' MB/s\n' +
       '- Random: ' + disk.randomAccess + ' IOPS\n' +
       '- Usage: ' + disk.usage + '\n' +
 
-      '\nNETWORK\n' +
+      '\n*NETWORK*\n' +
       '- Download: ' + net.download + ' Mbps\n' +
       '- Upload: ' + net.upload + ' Mbps\n' +
       '- Latency: ' + net.latency + ' ms\n' +
       '- DNS: ' + net.dnsResolve + ' ms\n' +
 
-      '\nUPTIME\n' +
+      '\n*UPTIME*\n' +
       '- System: ' + clockString(os.uptime() * 1000) + '\n' +
       '- Bot: ' + clockString(process.uptime() * 1000) + '\n' +
       '- Load: ' + os.loadavg().map(v => v.toFixed(2)).join(' / ')

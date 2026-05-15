@@ -47,27 +47,27 @@ export default async ({ sock, m, args }) => {
     const respTime = ((Date.now() - new Date((m.messageTimestamp || 0) * 1000)) / 1000).toFixed(3)
 
     let teks =
-      'INFO SERVER\n' +
-      '- Speed Respons: ' + respTime + 's\n' +
+      '*SERVER*\n' +
+      '- Response: ' + respTime + 's\n' +
       '- Hostname: ' + os.hostname() + '\n' +
-      '- CPU Core: ' + cpus.length + '\n' +
+      '- CPU: ' + cpus.length + ' Core\n' +
       '- Platform: ' + os.platform() + '\n' +
       '- OS: ' + (os.version ? os.version() + ' / ' : '') + os.release() + '\n' +
       '- Arch: ' + os.arch() + '\n' +
       '- RAM: ' + formatSize(os.totalmem() - os.freemem()) + ' / ' + formatSize(os.totalmem()) + '\n' +
 
-      '\nPROVIDER INFO\n' +
+      '\n*PROVIDER*\n' +
       '- IP: ' + (myip.ip ? hideIp(myip.ip) : 'N/A') + '\n' +
       '- Region: ' + (myip.region || 'N/A') + ' ' + (myip.country || '') + '\n' +
       '- ISP: ' + (myip.org || 'N/A') + '\n' +
 
-      '\nRUNTIME OS\n' +
+      '\n*RUNTIME OS*\n' +
       '- ' + runtime(os.uptime()) + '\n' +
 
-      '\nRUNTIME BOT\n' +
+      '\n*RUNTIME BOT*\n' +
       '- ' + runtime(process.uptime()) + '\n' +
 
-      '\nNODE MEMORY USAGE\n' +
+      '\n*NODE MEMORY USAGE*\n' +
       Object.keys(used).map(key => '- ' + key + ': ' + formatSize(used[key])).join('\n') +
       '\n- Heap Executable: ' + formatSize(heapStat?.total_heap_size_executable || 0) +
       '\n- Physical Size: ' + formatSize(heapStat?.total_physical_size || 0) +
@@ -81,19 +81,19 @@ export default async ({ sock, m, args }) => {
       '\n- Used Global Handles: ' + formatSize(heapStat?.used_global_handles_size || 0)
 
     if (cpus[0]) {
-      teks += '\n\nTOTAL CPU USAGE\n'
+      teks += '\n\n*CPU USAGE*\n'
       teks += cpus[0].model.trim() + ' (' + cpu.speed + ' MHZ)\n'
       teks += Object.keys(cpu.times).map(type =>
         '- ' + type + ': ' + ((100 * cpu.times[type]) / cpu.total).toFixed(2) + '%'
       ).join('\n')
 
-      teks += '\n\nCPU CORE(S) USAGE (' + cpus.length + ' Core CPU)\n'
-      teks += cpus.map((cpu, i) =>
-        (i + 1) + '. ' + cpu.model.trim() + ' (' + cpu.speed + ' MHZ)\n' +
-        Object.keys(cpu.times).map(type =>
-          '- ' + type + ': ' + ((100 * cpu.times[type]) / cpu.total).toFixed(2) + '%'
-        ).join('\n')
-      ).join('\n\n')
+      teks += '\n\n*CORE USAGE (' + cpus.length + ' Core)*\n'
+      teks += cpus.slice(0, 8).map((cpu, i) =>
+        'Core ' + (i + 1) + ': ' + Object.keys(cpu.times).map(type =>
+          type + ' ' + ((100 * cpu.times[type]) / cpu.total).toFixed(1) + '%'
+        ).join(' | ')
+      ).join('\n')
+      if (cpus.length > 8) teks += '\n...and ' + (cpus.length - 8) + ' more cores'
     }
 
     await m.reply(teks)
