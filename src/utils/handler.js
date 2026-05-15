@@ -66,12 +66,12 @@ export async function sockConfig(opts) {
 
       if (action === 'add' && settings.welcome) {
         const { adReply } = await import('./reply.js')
-        await adReply(sock, {}, settings.welcomeText || 'Welcome!', id, participants)
+        await adReply(sock, {}, settings.welcomeText || 'Welcome!', id)
       }
 
       if (action === 'remove' && settings.goodbye) {
         const { adReply } = await import('./reply.js')
-        await adReply(sock, {}, settings.goodbyeText || 'Goodbye!', id, participants)
+        await adReply(sock, {}, settings.goodbyeText || 'Goodbye!', id)
       }
     } catch (e) {
       console.error('Welcome/Goodbye error:', e)
