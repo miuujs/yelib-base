@@ -32,8 +32,7 @@ export default async ({ sock, m }) => {
           rows: [
             { items: ['.rvo', 'Read view-once media'] },
             { items: ['.swgc / .statusgroup', 'Post group status'] },
-            { items: ['.upch', 'Upload audio to channel'] },
-            { items: ['.setpp / .setprofile', 'Change bot profile pic'] }
+            { items: ['.upch', 'Upload audio to channel'] }
           ]
         }
       },

@@ -27,7 +27,6 @@ export default async ({ sock, m }) => {
             { items: ['.addmode', 'Member add mode'] },
             { items: ['.setname', 'Change group name'] },
             { items: ['.setdesc', 'Change description'] },
-            { items: ['.setpp / .setprofile', 'Change group icon'] },
             { items: ['.gcpublic', 'Per-group public mode'] },
             { items: ['.antitoxic', 'Auto-flag toxic words'] },
             { items: ['.antivirtex', 'Delete virtex & >4000 char'] }
