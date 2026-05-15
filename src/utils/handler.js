@@ -72,7 +72,7 @@ export async function sockConfig(opts) {
         const desc = data.desc || ''
         let text = settings.welcomeText || 'Welcome {users}!'
         text = text.replace(/{users}/g, usersMention).replace(/{group}/g, groupName).replace(/{count}/g, members).replace(/{desc}/g, desc)
-        await sock.sendMessage(id, { text, mentions: jids })
+        await sock.sendMessage(id, { text, contextInfo: { mentionedJid: jids } })
       }
 
       if (action === 'remove' && settings.goodbye) {
